@@ -79,7 +79,7 @@ export default function StorePage() {
       price: 19.99,
       category: "Scripture Sounds",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "/assets/Talent.mp3",
+      audioUrl: "assets/stable_audio_example.flac",
       features: [
         "12 background tracks",
         "Minimal musical elements",
