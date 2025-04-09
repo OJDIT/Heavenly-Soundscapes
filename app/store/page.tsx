@@ -14,7 +14,7 @@ export default function StorePage() {
       price: 29.99,
       category: "Scripture Sounds",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "#",
+      audioUrl: "assets/stable_audio_example.flac",
       features: ["10 ambient tracks", "Scripture readings (optional stems)", "Seamless loops", "WAV & MP3 formats"],
     },
     {
@@ -24,7 +24,7 @@ export default function StorePage() {
       price: 49.99,
       category: "Producer Kits",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "#",
+      audioUrl: "/assets/Talent.mp3",
       features: ["50+ instrument loops", "20 drum patterns", "15 worship pad progressions", "MIDI files included"],
     },
     {
@@ -34,7 +34,7 @@ export default function StorePage() {
       price: 24.99,
       category: "Nature Music",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "#",
+      audioUrl: "/assets/Talent.mp3",
       features: [
         "8 nature ambience tracks",
         "Gentle worship elements",
@@ -49,7 +49,7 @@ export default function StorePage() {
       price: 39.99,
       category: "Producer Kits",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "#",
+      audioUrl: "/assets/Talent.mp3",
       features: [
         "Hammond organ samples",
         "Gospel choir phrases",
@@ -64,7 +64,7 @@ export default function StorePage() {
       price: 34.99,
       category: "Custom Sounds",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "#",
+      audioUrl: "/assets/Talent.mp3",
       features: [
         "Atmospheric pads",
         "Evolving textures",
@@ -79,7 +79,7 @@ export default function StorePage() {
       price: 19.99,
       category: "Scripture Sounds",
       imageUrl: "/placeholder.svg?height=500&width=500",
-      audioUrl: "#",
+      audioUrl: "/assets/Talent.mp3",
       features: [
         "12 background tracks",
         "Minimal musical elements",
