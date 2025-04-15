@@ -1,56 +1,58 @@
 import { NextResponse } from "next/server"
-import { generateClientTokenFromReadWriteToken } from "@vercel/blob"
+import { handleUpload } from "@vercel/blob/client"
 
 export async function POST(request: Request) {
   try {
-    // Parse the request body
-    const { pathname, clientPayload } = await request.json()
+    const response = await handleUpload({
+      request,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        // This is where you can validate the user is authorized, pathname,
+        // and any other upload metadata
+        console.log("Generating token for path:", pathname)
 
-    if (!pathname) {
-      return NextResponse.json({ error: "Pathname is required" }, { status: 400 })
-    }
+        // Determine content type based on pathname
+        const isVideo = pathname.startsWith("videos/")
+        const isAudio = pathname.startsWith("audio/")
+        const isThumbnail = pathname.startsWith("thumbnails/")
 
-    // Get the token from environment variables
-    const token = process.env.BLOB_READ_WRITE_TOKEN
-    if (!token) {
-      return NextResponse.json({ error: "BLOB_READ_WRITE_TOKEN is not configured" }, { status: 500 })
-    }
+        return {
+          allowedContentTypes: isVideo ? ["video/*"] : isAudio ? ["audio/*"] : isThumbnail ? ["image/*"] : ["*/*"],
+          maximumSizeInBytes: 500 * 1024 * 1024, // 500 MB max size
+          tokenPayload: clientPayload, // Pass through the original payload
+        }
+      },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        // This is called after upload is complete
+        console.log("Upload completed:", blob.url, "Path:", blob.pathname)
 
-    // Parse metadata if available
-    let metadata = {}
-    try {
-      if (clientPayload) {
-        metadata = JSON.parse(clientPayload)
-        console.log("Received metadata:", metadata)
-      }
-    } catch (error) {
-      console.error("Error parsing client payload:", error)
-    }
+        try {
+          // Parse the metadata from tokenPayload
+          let metadata = {}
+          if (tokenPayload) {
+            try {
+              metadata = JSON.parse(tokenPayload)
+              console.log("Parsed metadata:", metadata)
+            } catch (error) {
+              console.error("Error parsing token payload:", error)
+            }
+          }
 
-    // Determine content type based on pathname
-    const isAudio = pathname.startsWith("audio/")
+          // Determine content type based on pathname
+          const isVideo = blob.pathname.startsWith("videos/")
+          const isAudio = blob.pathname.startsWith("audio/")
+          const contentType = isVideo ? "video" : isAudio ? "audio" : "file"
 
-    // Generate the client token
-    const clientToken = await generateClientTokenFromReadWriteToken({
-      pathname,
-      readWriteToken: token,
-      tokenPayload: clientPayload,
-      allowedContentTypes: isAudio ? ["audio/*"] : ["*/*"],
-      maximumSizeInBytes: 500 * 1024 * 1024, // 500 MB max size
+          console.log(`Successfully uploaded ${contentType} to Blob storage`)
+        } catch (error) {
+          console.error("Error in onUploadCompleted:", error)
+        }
+      },
     })
 
-    return NextResponse.json({
-      clientToken,
-      uploadUrl: clientToken.uploadUrl,
-      tokenPayload: clientToken.tokenPayload,
-    })
+    return response
   } catch (error) {
     console.error("Error in upload token handler:", error)
-    return NextResponse.json(
-      {
-        error: "Error generating upload token: " + (error.message || "Unknown error"),
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: "Error generating upload token" }, { status: 500 })
   }
 }

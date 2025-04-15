@@ -2,12 +2,15 @@ import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
 import { del } from "@vercel/blob"
 
+// Update the POST function to better handle different storage types
 export async function POST(request: Request) {
   try {
     const { bucket, path, contentType, id, storageType } = await request.json()
 
+    console.log(`Deleting ${contentType} with ID ${id}, storage type: ${storageType || "unknown"}`)
+
     // For mock data or placeholder images, skip the deletion
-    const isMockData = path.includes("placeholder.svg") || !path.includes("/")
+    const isMockData = !path || path.includes("placeholder.svg") || !path.includes("/")
 
     if (!isMockData) {
       console.log(`Attempting to delete file: ${path} from ${storageType || "supabase"}`)
@@ -52,22 +55,27 @@ export async function POST(request: Request) {
         const supabase = createServerSupabaseClient()
 
         if (!supabase) {
-          return NextResponse.json({ error: "Failed to initialize Supabase client" }, { status: 500 })
-        }
-
-        // Try to delete from Supabase Storage
-        const { error } = await supabase.storage.from(bucket).remove([filePath])
-
-        if (error) {
-          // If the error is about the file not found, consider it a success
-          if (error.message.includes("not found")) {
-            console.warn(`File ${filePath} not found in bucket ${bucket}, but continuing with deletion`)
-          } else {
-            console.error(`Error deleting file from Supabase: ${error.message}`)
-            // Continue with local deletion even if Supabase deletion fails
-          }
+          console.warn("Failed to initialize Supabase client, continuing with local deletion")
         } else {
-          console.log(`Successfully deleted file from Supabase: ${filePath}`)
+          // Try to delete from Supabase Storage
+          try {
+            const { error } = await supabase.storage.from(bucket).remove([filePath])
+
+            if (error) {
+              // If the error is about the file not found, consider it a success
+              if (error.message.includes("not found")) {
+                console.warn(`File ${filePath} not found in bucket ${bucket}, but continuing with deletion`)
+              } else {
+                console.error(`Error deleting file from Supabase: ${error.message}`)
+                // Continue with local deletion even if Supabase deletion fails
+              }
+            } else {
+              console.log(`Successfully deleted file from Supabase: ${filePath}`)
+            }
+          } catch (supabaseError) {
+            console.error("Error with Supabase deletion:", supabaseError)
+            // Continue with local deletion
+          }
         }
       }
     }

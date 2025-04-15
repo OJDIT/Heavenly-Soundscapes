@@ -2,14 +2,16 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
-import { Music, AlertCircle, LinkIcon } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Music, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { uploadToSupabase, ensureSupabaseBucket } from "@/lib/supabase-client"
 import { upload } from "@vercel/blob/client"
 
-// Maximum file size for Vercel Blob
-const BLOB_MAX_SIZE = 500 * 1024 * 1024 // 500MB
+// Size thresholds
+const SUPABASE_MAX_SIZE = 50 * 1024 * 1024 // 50MB - Supabase free tier limit
+const BLOB_MAX_SIZE = 500 * 1024 * 1024 // 500MB - Vercel Blob limit
 
 export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [file, setFile] = useState<File | null>(null)
@@ -23,10 +25,33 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [detailedError, setDetailedError] = useState<string | null>(null)
-  const [useUrlUpload, setUseUrlUpload] = useState(false)
-  const [audioUrl, setAudioUrl] = useState("")
+  const [isBucketReady, setBucketReady] = useState(false)
+  const [isCheckingBucket, setIsCheckingBucket] = useState(true)
 
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Check if the bucket exists when the component mounts
+  useEffect(() => {
+    const checkBucket = async () => {
+      setIsCheckingBucket(true)
+      try {
+        // Initialize the storage buckets
+        const bucketReady = await ensureSupabaseBucket("audio-files")
+        setBucketReady(bucketReady)
+
+        if (!bucketReady) {
+          setError("Storage system is not ready. Please try again later.")
+        }
+      } catch (err) {
+        console.error("Error checking storage buckets:", err)
+        setError("Could not connect to storage system. Please try again later.")
+      } finally {
+        setIsCheckingBucket(false)
+      }
+    }
+
+    checkBucket()
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -47,7 +72,6 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
     setFile(selectedFile)
     setError(null)
     setDetailedError(null)
-    setUseUrlUpload(false)
 
     // Create an audio URL for preview
     const objectUrl = URL.createObjectURL(selectedFile)
@@ -57,11 +81,10 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
     return () => URL.revokeObjectURL(objectUrl)
   }
 
-  const handleUrlUpload = async (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!audioUrl) {
-      setError("Please enter a valid audio URL")
+    if (!file) {
+      setError("Please select an audio file")
       return
     }
 
@@ -78,30 +101,69 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
     setIsUploading(true)
     setError(null)
     setDetailedError(null)
-    setUploadProgress(50)
+    setUploadProgress(0)
 
     try {
-      // Create a unique ID for the audio
-      const audioId = `audio-${Date.now()}`
+      setUploadProgress(10) // Show initial progress
 
-      // Extract filename from URL
-      const urlParts = audioUrl.split("/")
-      const filename = urlParts[urlParts.length - 1] || `audio-${Date.now()}.mp3`
+      // Create a unique filename
+      const filename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
+      let fileUrl = ""
+
+      // Choose upload method based on file size
+      if (file.size <= SUPABASE_MAX_SIZE) {
+        // Use Supabase for files under 50MB
+        setUploadProgress(20)
+        console.log("Uploading directly to Supabase...")
+
+        const filePath = `audio/${filename}`
+        const { url, error } = await uploadToSupabase(file, "audio-files", filePath)
+
+        if (error) throw error
+
+        fileUrl = url
+        console.log("File uploaded to Supabase:", fileUrl)
+        setUploadProgress(80)
+      } else {
+        // Use Vercel Blob for larger files
+        setUploadProgress(20)
+        console.log("File too large for Supabase, using Vercel Blob...")
+
+        // Prepare metadata
+        const metadata = JSON.stringify({
+          title,
+          category,
+          description,
+          price,
+        })
+
+        // Upload directly to Vercel Blob
+        const blob = await upload(`audio/${filename}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload/get-upload-token",
+          clientPayload: metadata,
+        })
+
+        fileUrl = blob.url
+        console.log("File uploaded to Vercel Blob:", fileUrl)
+        setUploadProgress(80)
+      }
 
       // Create audio metadata
+      const audioId = `audio-${Date.now()}`
       const newAudio = {
         id: audioId,
         title,
         category,
         description,
         price: Number.parseFloat(price),
-        filename,
-        url: audioUrl,
-        storageType: "external", // Mark this as an external URL
-        size: 0, // Unknown size for external URLs
-        type: "audio/mpeg", // Assume MP3 for external URLs
+        filename: file.name,
+        url: fileUrl,
+        size: file.size,
+        type: file.type,
         duration: "3:45", // In a real app, you'd calculate this
         dateAdded: new Date().toISOString(),
+        storageType: file.size <= SUPABASE_MAX_SIZE ? "supabase" : "blob",
       }
 
       // Save to localStorage
@@ -125,11 +187,9 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
         setCategory("")
         setDescription("")
         setPrice("")
-        setAudioUrl("")
         setUploadProgress(0)
         setUploadSuccess(false)
         setIsUploading(false)
-        setUseUrlUpload(false)
         if (formRef.current) {
           formRef.current.reset()
         }
@@ -146,136 +206,17 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
     }
   }
 
-  const handleFileUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!file) {
-      setError("Please select an audio file")
-      return
-    }
-
-    if (!title.trim()) {
-      setError("Please enter a title")
-      return
-    }
-
-    if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) {
-      setError("Please enter a valid price")
-      return
-    }
-
-    setIsUploading(true)
-    setError(null)
-    setDetailedError(null)
-    setUploadProgress(10)
-
-    try {
-      // Generate a unique filename
-      const filename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
-
-      // Prepare metadata
-      const metadata = JSON.stringify({
-        title,
-        category,
-        description,
-        price,
-      })
-
-      setUploadProgress(20)
-      console.log("Starting upload to Vercel Blob...")
-
-      try {
-        // Upload to Vercel Blob with progress tracking
-        const blob = await upload(`audio/${filename}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload/get-upload-token",
-          clientPayload: metadata,
-          onUploadProgress: ({ loaded, total }) => {
-            const percentage = Math.round((loaded / total) * 80) + 10 // 10-90% range
-            setUploadProgress(percentage)
-            console.log(`Upload progress: ${percentage}%`)
-          },
-        })
-
-        setUploadProgress(90)
-        console.log("Upload to Vercel Blob completed:", blob.url)
-
-        // Create audio metadata
-        const newAudio = {
-          id: `audio-${Date.now()}`,
-          title,
-          category,
-          description,
-          price: Number.parseFloat(price),
-          filename: file.name,
-          url: blob.url,
-          path: blob.pathname,
-          storageType: "blob",
-          size: file.size,
-          type: file.type,
-          duration: "3:45",
-          dateAdded: new Date().toISOString(),
-        }
-
-        // Save to localStorage
-        try {
-          const existingContent = localStorage.getItem("audioContent")
-          const audioContent = existingContent ? JSON.parse(existingContent) : []
-          audioContent.push(newAudio)
-          localStorage.setItem("audioContent", JSON.stringify(audioContent))
-        } catch (storageError) {
-          console.error("Failed to save to localStorage:", storageError)
-        }
-
-        setUploadProgress(100)
-        setUploadSuccess(true)
-
-        // Reset form after successful upload
-        setTimeout(() => {
-          setFile(null)
-          setPreview(null)
-          setTitle("")
-          setCategory("")
-          setDescription("")
-          setPrice("")
-          setUploadProgress(0)
-          setUploadSuccess(false)
-          setIsUploading(false)
-          if (formRef.current) {
-            formRef.current.reset()
-          }
-          if (onSuccess) {
-            onSuccess()
-          }
-        }, 2000)
-      } catch (blobError) {
-        console.error("Error uploading to Vercel Blob:", blobError)
-        throw new Error(`Blob upload failed: ${blobError.message || "Unknown error"}`)
-      }
-    } catch (err) {
-      setIsUploading(false)
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
-      setError("Upload failed. Please try again.")
-      setDetailedError(errorMessage)
-      console.error("Upload error:", err)
-    }
+  if (isCheckingBucket) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-gold-500 border-r-transparent"></div>
+        <p className="ml-3 text-muted-foreground">Initializing storage system...</p>
+      </div>
+    )
   }
 
   return (
-    <form ref={formRef} onSubmit={useUrlUpload ? handleUrlUpload : handleFileUpload} className="space-y-4 max-w-2xl">
-      <div className="bg-green-500/10 border border-green-500/50 text-green-500 rounded-md p-3 text-sm mb-4">
-        <div className="flex items-start gap-2">
-          <Music className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium">Hybrid Storage Upload</p>
-            <p className="mt-1">
-              {useUrlUpload
-                ? "For very large files, please provide a direct URL to your audio file."
-                : "Files under 50MB will use Supabase, larger files will use Vercel Blob storage."}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <form ref={formRef} onSubmit={handleUpload} className="space-y-4 max-w-2xl">
       {error && (
         <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 text-sm">
           <div className="flex items-start gap-2">
@@ -288,6 +229,36 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
                   <p className="mt-1">{detailedError}</p>
                 </details>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isBucketReady && !isCheckingBucket && (
+        <div className="bg-amber-500/10 border border-amber-500/50 text-amber-500 rounded-md p-3 text-sm mb-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p>Storage system is not ready. Uploads may fail.</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={async () => {
+                  setIsCheckingBucket(true)
+                  try {
+                    const bucketReady = await ensureSupabaseBucket("audio-files")
+                    setBucketReady(bucketReady)
+                  } catch (err) {
+                    console.error("Error initializing storage:", err)
+                  } finally {
+                    setIsCheckingBucket(false)
+                  }
+                }}
+              >
+                Retry Initialization
+              </Button>
             </div>
           </div>
         </div>
@@ -344,60 +315,23 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
         />
       </div>
 
-      <div className="flex justify-between items-center">
-        <label className="text-sm font-medium">Upload Method</label>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={useUrlUpload ? "outline" : "default"}
-            size="sm"
-            onClick={() => setUseUrlUpload(false)}
-          >
-            <Music className="h-4 w-4 mr-2" />
-            File Upload
-          </Button>
-          <Button
-            type="button"
-            variant={useUrlUpload ? "default" : "outline"}
-            size="sm"
-            onClick={() => setUseUrlUpload(true)}
-          >
-            <LinkIcon className="h-4 w-4 mr-2" />
-            URL Upload
-          </Button>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Audio File</label>
+        <div className="border-2 border-dashed border-gold-500/30 rounded-lg p-6 text-center hover:border-gold-500/50 transition-colors">
+          <input type="file" accept="audio/*" className="hidden" id="audio-upload" onChange={handleFileChange} />
+          <label htmlFor="audio-upload" className="cursor-pointer">
+            <Music className="h-10 w-10 mx-auto text-gold-500/70 mb-2" />
+            <p className="text-sm text-muted-foreground mb-1">{file ? file.name : "Click to upload audio file"}</p>
+            <p className="text-xs text-muted-foreground">
+              {file && file.size > SUPABASE_MAX_SIZE
+                ? "File will be uploaded to Vercel Blob (>50MB)"
+                : "File will be uploaded to Supabase (≤50MB)"}
+            </p>
+          </label>
         </div>
       </div>
 
-      {useUrlUpload ? (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Audio URL</label>
-          <Input
-            type="url"
-            placeholder="https://example.com/your-audio-file.mp3"
-            value={audioUrl}
-            onChange={(e) => setAudioUrl(e.target.value)}
-            className="w-full"
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            Enter a direct URL to your audio file. The URL must be publicly accessible.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Audio File</label>
-          <div className="border-2 border-dashed border-gold-500/30 rounded-lg p-6 text-center hover:border-gold-500/50 transition-colors">
-            <input type="file" accept="audio/*" className="hidden" id="audio-upload" onChange={handleFileChange} />
-            <label htmlFor="audio-upload" className="cursor-pointer">
-              <Music className="h-10 w-10 mx-auto text-gold-500/70 mb-2" />
-              <p className="text-sm text-muted-foreground mb-1">{file ? file.name : "Click to upload audio file"}</p>
-              <p className="text-xs text-muted-foreground">Upload files up to 500MB directly to Vercel Blob storage</p>
-            </label>
-          </div>
-        </div>
-      )}
-
-      {preview && !useUrlUpload && (
+      {preview && (
         <div className="border border-gold-500/20 rounded-lg p-4 bg-black/40">
           <h4 className="text-sm font-medium mb-2">Audio Preview</h4>
           <audio controls className="w-full">
@@ -407,23 +341,13 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
         </div>
       )}
 
-      {audioUrl && useUrlUpload && (
-        <div className="border border-gold-500/20 rounded-lg p-4 bg-black/40">
-          <h4 className="text-sm font-medium mb-2">Audio URL Preview</h4>
-          <audio controls className="w-full">
-            <source src={audioUrl} />
-            Your browser does not support the audio element.
-          </audio>
-        </div>
-      )}
-
       {isUploading && (
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span>{useUrlUpload ? "Processing URL..." : "Uploading to Vercel Blob..."}</span>
+            <span>Uploading to {file && file.size > SUPABASE_MAX_SIZE ? "Vercel Blob" : "Supabase"}...</span>
             <span>{uploadProgress}%</span>
           </div>
-          <div className="h-2 bg-gold-500/20 rounded-full overflow-hidden">
+          <div className="h-2 bg-gold-500/20 rounded-lg overflow-hidden">
             <div
               className="h-full bg-gold-500 transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
@@ -435,7 +359,7 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
       <div className="flex flex-col sm:flex-row gap-2">
         <Button
           type="submit"
-          disabled={(!file && !useUrlUpload) || (useUrlUpload && !audioUrl) || isUploading}
+          disabled={!file || isUploading || isCheckingBucket}
           className="bg-gold-500 hover:bg-gold-600 text-primary-foreground w-full sm:w-auto"
         >
           {isUploading ? "Uploading..." : "Upload Audio"}
@@ -446,10 +370,8 @@ export default function AudioUploadForm({ onSuccess }: { onSuccess?: () => void 
           onClick={() => {
             setFile(null)
             setPreview(null)
-            setAudioUrl("")
             setError(null)
             setDetailedError(null)
-            setUseUrlUpload(false)
           }}
           className="w-full sm:w-auto"
         >

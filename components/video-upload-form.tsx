@@ -6,12 +6,12 @@ import { useState, useRef, useEffect } from "react"
 import { Film, Plus, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { uploadFileToSupabase } from "@/lib/supabase"
+import { uploadToSupabase, ensureSupabaseBucket } from "@/lib/supabase-client"
 import { upload } from "@vercel/blob/client"
 
 // Size thresholds
-const SUPABASE_MAX_SIZE = 50 * 1024 * 1024 // 50MB
-const BLOB_MAX_SIZE = 500 * 1024 * 1024 // 500MB
+const SUPABASE_MAX_SIZE = 50 * 1024 * 1024 // 50MB - Supabase free tier limit
+const BLOB_MAX_SIZE = 500 * 1024 * 1024 // 500MB - Vercel Blob limit
 
 export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [file, setFile] = useState<File | null>(null)
@@ -29,7 +29,6 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
   const [detailedError, setDetailedError] = useState<string | null>(null)
   const [isBucketReady, setBucketReady] = useState(false)
   const [isCheckingBucket, setIsCheckingBucket] = useState(true)
-  const [storageMethod, setStorageMethod] = useState<"supabase" | "blob" | null>(null)
 
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -39,14 +38,10 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
       setIsCheckingBucket(true)
       try {
         // Initialize the storage buckets
-        const response = await fetch("/api/init-storage")
-        const data = await response.json()
+        const bucketReady = await ensureSupabaseBucket("video-files")
+        setBucketReady(bucketReady)
 
-        if (data.success) {
-          console.log("Storage buckets initialized:", data.results)
-          setBucketReady(true)
-        } else {
-          console.error("Failed to initialize storage buckets:", data.error)
+        if (!bucketReady) {
           setError("Storage system is not ready. Please try again later.")
         }
       } catch (err) {
@@ -70,14 +65,10 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
       return
     }
 
-    // Determine storage method based on file size
+    // Check file size
     if (selectedFile.size > BLOB_MAX_SIZE) {
       setError(`File is too large. Maximum size is ${BLOB_MAX_SIZE / (1024 * 1024)}MB`)
       return
-    } else if (selectedFile.size > SUPABASE_MAX_SIZE) {
-      setStorageMethod("blob")
-    } else {
-      setStorageMethod("supabase")
     }
 
     setFile(selectedFile)
@@ -148,14 +139,27 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
       // Create unique filenames
       const videoFilename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
       let videoUrl = ""
-      let videoPath = ""
       let thumbnailUrl = null
+      let storageType = "supabase"
 
-      // Upload video based on selected storage method
-      if (storageMethod === "blob" || file.size > SUPABASE_MAX_SIZE) {
-        // Use Vercel Blob for large files
+      // Upload video based on size
+      if (file.size <= SUPABASE_MAX_SIZE) {
+        // Use Supabase for files under 50MB
         setUploadProgress(20)
-        console.log("Uploading large video to Vercel Blob...")
+        console.log("Uploading video directly to Supabase...")
+
+        const filePath = `videos/${videoFilename}`
+        const { url, error } = await uploadToSupabase(file, "video-files", filePath)
+
+        if (error) throw error
+
+        videoUrl = url
+        console.log("Video uploaded to Supabase:", videoUrl)
+      } else {
+        // Use Vercel Blob for larger files
+        setUploadProgress(20)
+        console.log("Video too large for Supabase, using Vercel Blob...")
+        storageType = "blob"
 
         // Prepare metadata
         const metadata = JSON.stringify({
@@ -165,7 +169,7 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
           price,
         })
 
-        // Upload to Vercel Blob
+        // Upload directly to Vercel Blob
         const blob = await upload(`videos/${videoFilename}`, file, {
           access: "public",
           handleUploadUrl: "/api/upload/get-upload-token",
@@ -173,38 +177,25 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
         })
 
         videoUrl = blob.url
-        videoPath = blob.pathname
         console.log("Video uploaded to Vercel Blob:", videoUrl)
-      } else {
-        // Use Supabase for smaller files
-        setUploadProgress(20)
-        console.log("Uploading video to Supabase...")
-
-        videoPath = `videos/${videoFilename}`
-        const { data, error } = await uploadFileToSupabase(file, "video-files", videoPath)
-
-        if (error) throw error
-
-        videoUrl = data?.url || ""
-        console.log("Video uploaded to Supabase:", videoUrl)
       }
 
       setUploadProgress(70)
 
-      // Upload thumbnail if provided (always to Supabase since it's small)
+      // Upload thumbnail if provided
       if (thumbnail) {
         const thumbnailFilename = `${Date.now()}-${thumbnail.name.replace(/\s+/g, "-")}`
+
+        // Thumbnails are small, so we can use Supabase
         const thumbnailPath = `thumbnails/${thumbnailFilename}`
+        const { url, error } = await uploadToSupabase(thumbnail, "video-files", thumbnailPath)
 
-        const { data: thumbnailData, error: thumbnailError } = await uploadFileToSupabase(
-          thumbnail,
-          "video-files",
-          thumbnailPath,
-        )
-
-        if (thumbnailError) throw thumbnailError
-
-        thumbnailUrl = thumbnailData?.url || null
+        if (error) {
+          console.warn("Failed to upload thumbnail to Supabase:", error)
+        } else {
+          thumbnailUrl = url
+          console.log("Thumbnail uploaded to Supabase:", thumbnailUrl)
+        }
       }
 
       setUploadProgress(90)
@@ -221,16 +212,15 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
         price: Number.parseFloat(price),
         filename: file.name,
         url: videoUrl,
-        path: videoPath,
-        storageType: storageMethod || "supabase", // Track where it's stored
         thumbnailUrl,
         size: file.size,
         type: file.type,
         duration: "5:30", // In a real app, you'd calculate this
         dateAdded: new Date().toISOString(),
+        storageType,
       }
 
-      // Save to localStorage as a fallback
+      // Save to localStorage
       try {
         const existingContent = localStorage.getItem("videoContent")
         const videoContent = existingContent ? JSON.parse(existingContent) : []
@@ -256,7 +246,6 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
         setUploadProgress(0)
         setUploadSuccess(false)
         setIsUploading(false)
-        setStorageMethod(null)
         if (formRef.current) {
           formRef.current.reset()
         }
@@ -315,11 +304,8 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
                 onClick={async () => {
                   setIsCheckingBucket(true)
                   try {
-                    const response = await fetch("/api/init-storage")
-                    const data = await response.json()
-                    if (data.success) {
-                      setBucketReady(true)
-                    }
+                    const bucketReady = await ensureSupabaseBucket("video-files")
+                    setBucketReady(bucketReady)
                   } catch (err) {
                     console.error("Error initializing storage:", err)
                   } finally {
@@ -337,24 +323,6 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
       {uploadSuccess && (
         <div className="bg-green-500/10 border border-green-500/50 text-green-500 rounded-md p-3 text-sm">
           Video uploaded successfully!
-        </div>
-      )}
-
-      {file && storageMethod && (
-        <div className="bg-blue-500/10 border border-blue-500/50 text-blue-500 rounded-md p-3 text-sm">
-          <div className="flex items-start gap-2">
-            <Film className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">
-                Using {storageMethod === "blob" ? "Vercel Blob" : "Supabase"} for this upload
-              </p>
-              <p className="mt-1 text-xs">
-                {storageMethod === "blob"
-                  ? "This file is larger than 50MB and will be stored in Vercel Blob."
-                  : "This file is smaller than 50MB and will be stored in Supabase."}
-              </p>
-            </div>
-          </div>
         </div>
       )}
 
@@ -412,7 +380,9 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
               <Film className="h-10 w-10 mx-auto text-gold-500/70 mb-2" />
               <p className="text-sm text-muted-foreground mb-1">{file ? file.name : "Click to upload video file"}</p>
               <p className="text-xs text-muted-foreground">
-                Supports MP4, MOV, WebM (up to {BLOB_MAX_SIZE / (1024 * 1024)}MB)
+                {file && file.size > SUPABASE_MAX_SIZE
+                  ? "File will be uploaded to Vercel Blob (>50MB)"
+                  : "File will be uploaded to Supabase (≤50MB)"}
               </p>
             </label>
           </div>
@@ -462,7 +432,7 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
       {isUploading && (
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span>Uploading to {storageMethod === "blob" ? "Vercel Blob" : "Supabase"}...</span>
+            <span>Uploading to {file && file.size > SUPABASE_MAX_SIZE ? "Vercel Blob" : "Supabase"}...</span>
             <span>{uploadProgress}%</span>
           </div>
           <div className="h-2 bg-gold-500/20 rounded-lg overflow-hidden">
@@ -492,7 +462,6 @@ export default function VideoUploadForm({ onSuccess }: { onSuccess?: () => void 
             setThumbnailPreview(null)
             setError(null)
             setDetailedError(null)
-            setStorageMethod(null)
           }}
           className="w-full sm:w-auto"
         >

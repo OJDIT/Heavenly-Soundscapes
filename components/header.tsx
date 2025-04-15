@@ -5,7 +5,6 @@ import Link from "next/link"
 import { ShoppingBag, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
-import Image from "next/image"
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -44,13 +43,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="relative flex items-center">
-            <Image
-              src="/logo.png"
-              alt="Heavenly Soundscapes Logo"
-              width={32}
-              height={32}
-              className="h-8 w-8 text-gold-500"
-            />
+            <img src="/logo.png" alt="Heavenly Soundscapes Logo" className="h-8 w-8" />
             <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md animate-gold-pulse"></div>
           </div>
           <span className="font-playfair font-bold text-xl">

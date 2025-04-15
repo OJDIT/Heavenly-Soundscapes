@@ -34,7 +34,7 @@ export async function GET(request: Request) {
             // Create the bucket
             const { data, error } = await supabase.storage.createBucket(bucket, {
               public: true,
-              fileSizeLimit: 50 * 1024 * 1024, // 50MB instead of 500MB
+              fileSizeLimit: 50 * 1024 * 1024, // 50MB
             })
 
             if (error) {
@@ -54,6 +54,7 @@ export async function GET(request: Request) {
 
               // Set public access policy for the bucket
               try {
+                // Add a policy to allow public access to all files
                 const { error: policyError } = await supabase.storage.from(bucket).createSignedUrl("test.txt", 60)
                 if (policyError && !policyError.message.includes("not found")) {
                   console.warn(`Warning: Could not test bucket ${bucket} access:`, policyError)

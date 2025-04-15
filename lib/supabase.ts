@@ -64,8 +64,8 @@ export const uploadFileToSupabase = async (
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`)
+      const errorData = await response.json()
+      throw new Error(errorData.error || "Upload failed")
     }
 
     const data = await response.json()

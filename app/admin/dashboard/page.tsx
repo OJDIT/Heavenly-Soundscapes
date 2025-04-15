@@ -1,5 +1,7 @@
 "use client"
 
+import { DialogFooter } from "@/components/ui/dialog"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -14,9 +16,9 @@ import {
   Plus,
   Search,
   Menu,
-  Edit,
   Trash,
   AlertCircle,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +30,7 @@ import VideoUploadForm from "@/components/video-upload-form"
 import AdminProfileSettings from "@/components/admin-profile-settings"
 import SimpleAudioUploadForm from "@/components/simple-audio-upload-form"
 import LargeFileUploadForm from "@/components/large-file-upload-form"
+import AdminEditDialog from "@/components/admin-edit-dialog"
 
 // Define types for our content
 interface AudioContent {
@@ -66,11 +69,14 @@ export default function AdminDashboard() {
   const [videoContent, setVideoContent] = useState<VideoContent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [showAudioUploadDialog, setShowAudioUploadDialog] = useState(false)
   const [showVideoUploadDialog, setShowVideoUploadDialog] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [isInitializing, setIsInitializing] = useState(true)
   const [initError, setInitError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{ item: any; type: "audio" | "video" } | null>(null)
 
   // Check if mobile on mount and when window resizes
   useEffect(() => {
@@ -142,45 +148,27 @@ export default function AdminDashboard() {
     }
   }
 
-  const extractPathFromUrl = (url: string): string | null => {
-    try {
-      // Check if the URL is valid
-      if (!url || url === "#" || url.startsWith("/placeholder.svg")) {
-        return null
-      }
-
-      // If it's a relative URL, just return the path part
-      if (url.startsWith("/")) {
-        return url.split("/").pop() || null
-      }
-
-      // Try to parse as a full URL
-      const urlObj = new URL(url)
-      // Get the path without the leading slash
-      const path = urlObj.pathname.startsWith("/") ? urlObj.pathname.substring(1) : urlObj.pathname
-
-      // Return the last part of the path (the filename)
-      return path.split("/").pop() || null
-    } catch (error) {
-      console.error("Error extracting path from URL:", error, url)
-      // If the URL is not valid, try to extract the filename directly
-      const parts = url.split("/")
-      return parts[parts.length - 1] || null
-    }
+  // Function to confirm deletion
+  const confirmDelete = (item: any, type: "audio" | "video") => {
+    setItemToDelete({ item, type })
+    setShowDeleteConfirm(true)
   }
 
-  // Update the deleteContent function to handle storageType
-  const deleteContent = async (item: AudioContent | VideoContent, contentType: "audio" | "video") => {
-    if (!confirm(`Are you sure you want to delete "${item.title}"?`)) {
-      return
-    }
+  // Function to handle deletion
+  const handleDelete = async () => {
+    if (!itemToDelete) return
 
     setIsLoading(true)
     setError(null)
+    setSuccess(null)
+    setShowDeleteConfirm(false)
 
     try {
+      const { item, type } = itemToDelete
+
       // Determine the path to delete
       let path = ""
+      const bucket = type === "audio" ? "audio-files" : "video-files"
 
       // First try to use the path property if it exists
       if (item.path) {
@@ -195,16 +183,7 @@ export default function AdminDashboard() {
         path = item.url
       }
 
-      // For mock data, we need to handle it differently
-      const isMockData = !path.includes("/") && !path.includes("://")
-      if (isMockData) {
-        // For mock data, just use the ID as the path
-        path = item.id
-      }
-
-      console.log(`Deleting ${contentType} with path: ${path}`)
-
-      const bucket = contentType === "audio" ? "audio-files" : "video-files"
+      console.log(`Deleting ${type} with path: ${path}`)
 
       const response = await fetch("/api/content/delete", {
         method: "POST",
@@ -214,9 +193,9 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           bucket,
           path,
-          contentType,
+          contentType: type,
           id: item.id,
-          storageType: (item as any).storageType || "supabase", // Add storageType
+          storageType: item.storageType || "supabase",
         }),
       })
 
@@ -226,19 +205,24 @@ export default function AdminDashboard() {
       }
 
       // Remove the item from the local state immediately for better UX
-      if (contentType === "audio") {
+      if (type === "audio") {
         setAudioContent((prev) => prev.filter((audio) => audio.id !== item.id))
       } else {
         setVideoContent((prev) => prev.filter((video) => video.id !== item.id))
       }
 
-      // Also refresh content from the server
-      await fetchContent()
+      setSuccess(`${type === "audio" ? "Audio" : "Video"} deleted successfully`)
+
+      // Clear success message after a few seconds
+      setTimeout(() => {
+        setSuccess(null)
+      }, 3000)
     } catch (err) {
       console.error("Error deleting content:", err)
-      setError(`Failed to delete ${contentType}. ${err instanceof Error ? err.message : "Please try again."}`)
+      setError(`Failed to delete content. ${err instanceof Error ? err.message : "Please try again."}`)
     } finally {
       setIsLoading(false)
+      setItemToDelete(null)
     }
   }
 
@@ -255,6 +239,61 @@ export default function AdminDashboard() {
   const handleSignOut = () => {
     localStorage.removeItem("isAuthenticated")
     router.push("/admin")
+  }
+
+  // Function to update price directly in the table
+  const handlePriceUpdate = async (item: any, newPrice: string, contentType: "audio" | "video") => {
+    try {
+      const priceValue = Number.parseFloat(newPrice)
+      if (isNaN(priceValue) || priceValue <= 0) {
+        throw new Error("Please enter a valid price")
+      }
+
+      // Create updated item with just the price change
+      const updatedItem = {
+        ...item,
+        price: priceValue,
+      }
+
+      // Send update request to API
+      const response = await fetch("/api/content/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: item.id,
+          contentType,
+          updatedItem,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to update price")
+      }
+
+      // Update local state
+      if (contentType === "audio") {
+        setAudioContent((prev) => prev.map((audio) => (audio.id === item.id ? { ...audio, price: priceValue } : audio)))
+      } else {
+        setVideoContent((prev) => prev.map((video) => (video.id === item.id ? { ...video, price: priceValue } : video)))
+      }
+
+      setSuccess("Price updated successfully")
+
+      // Clear success message after a few seconds
+      setTimeout(() => {
+        setSuccess(null)
+      }, 3000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred while updating the price")
+
+      // Clear error message after a few seconds
+      setTimeout(() => {
+        setError(null)
+      }, 3000)
+    }
   }
 
   // Filter content based on search term
@@ -412,8 +451,22 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {(filteredAudioContent.some((item) => item.size > 50 * 1024 * 1024) ||
-              filteredVideoContent.some((item) => item.size > 50 * 1024 * 1024)) && (
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 mb-6 flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <p>{error}</p>
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-green-500/10 border border-green-500/50 text-green-500 rounded-md p-3 mb-6 flex items-start gap-2">
+                <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <p>{success}</p>
+              </div>
+            )}
+
+            {(filteredAudioContent.some((item) => item.size && item.size > 50 * 1024 * 1024) ||
+              filteredVideoContent.some((item) => item.size && item.size > 50 * 1024 * 1024)) && (
               <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 mb-6 flex items-start gap-2">
                 <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
                 <div>
@@ -467,12 +520,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 text-sm">
-                    {error}
-                  </div>
-                )}
-
                 <div className="border border-gold-500/20 rounded-lg overflow-hidden overflow-x-auto">
                   <table className="w-full min-w-[600px]">
                     <thead className="bg-black/40">
@@ -503,13 +550,13 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-gold-500/10">
                       {isLoading ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-3 text-center">
+                          <td colSpan={7} className="px-4 py-3 text-center">
                             <div className="animate-pulse text-gold-500">Loading...</div>
                           </td>
                         </tr>
                       ) : filteredAudioContent.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-3 text-center text-muted-foreground">
+                          <td colSpan={7} className="px-4 py-3 text-center text-muted-foreground">
                             {searchTerm ? "No matching audio content found" : "No audio content yet. Add some!"}
                           </td>
                         </tr>
@@ -519,20 +566,40 @@ export default function AdminDashboard() {
                             <td className="px-4 py-3 whitespace-nowrap">{item.title}</td>
                             <td className="px-4 py-3 whitespace-nowrap">{item.category}</td>
                             <td className="px-4 py-3 whitespace-nowrap">{item.duration}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">£{item.price.toFixed(2)}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <span className="mr-1">£</span>
+                                <Input
+                                  type="number"
+                                  value={item.price}
+                                  onChange={(e) => {
+                                    // Update price locally for immediate feedback
+                                    setAudioContent((prev) =>
+                                      prev.map((audio) =>
+                                        audio.id === item.id
+                                          ? { ...audio, price: Number.parseFloat(e.target.value) || 0 }
+                                          : audio,
+                                      ),
+                                    )
+                                  }}
+                                  onBlur={(e) => handlePriceUpdate(item, e.target.value, "audio")}
+                                  className="w-20 h-7 px-1 py-0 text-sm"
+                                  min="0.01"
+                                  step="0.01"
+                                />
+                              </div>
+                            </td>
                             <td className="px-4 py-3 whitespace-nowrap">{formatDate(item.dateAdded)}</td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               {item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : "N/A"}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap text-right">
-                              <Button variant="ghost" size="sm">
-                                <Edit className="h-4 w-4 mr-1" /> Edit
-                              </Button>
+                              <AdminEditDialog item={item} contentType="audio" onSuccess={fetchContent} />
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="text-red-500"
-                                onClick={() => deleteContent(item, "audio")}
+                                onClick={() => confirmDelete(item, "audio")}
                               >
                                 <Trash className="h-4 w-4 mr-1" /> Delete
                               </Button>
@@ -569,12 +636,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 text-sm">
-                    {error}
-                  </div>
-                )}
-
                 <div className="border border-gold-500/20 rounded-lg overflow-hidden overflow-x-auto">
                   <table className="w-full min-w-[600px]">
                     <thead className="bg-black/40">
@@ -605,13 +666,13 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-gold-500/10">
                       {isLoading ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-3 text-center">
+                          <td colSpan={7} className="px-4 py-3 text-center">
                             <div className="animate-pulse text-gold-500">Loading...</div>
                           </td>
                         </tr>
                       ) : filteredVideoContent.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-3 text-center text-muted-foreground">
+                          <td colSpan={7} className="px-4 py-3 text-center text-muted-foreground">
                             {searchTerm ? "No matching video content found" : "No video content yet. Add some!"}
                           </td>
                         </tr>
@@ -621,20 +682,40 @@ export default function AdminDashboard() {
                             <td className="px-4 py-3 whitespace-nowrap">{item.title}</td>
                             <td className="px-4 py-3 whitespace-nowrap">{item.category}</td>
                             <td className="px-4 py-3 whitespace-nowrap">{item.duration}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">£{item.price.toFixed(2)}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <span className="mr-1">£</span>
+                                <Input
+                                  type="number"
+                                  value={item.price}
+                                  onChange={(e) => {
+                                    // Update price locally for immediate feedback
+                                    setVideoContent((prev) =>
+                                      prev.map((video) =>
+                                        video.id === item.id
+                                          ? { ...video, price: Number.parseFloat(e.target.value) || 0 }
+                                          : video,
+                                      ),
+                                    )
+                                  }}
+                                  onBlur={(e) => handlePriceUpdate(item, e.target.value, "video")}
+                                  className="w-20 h-7 px-1 py-0 text-sm"
+                                  min="0.01"
+                                  step="0.01"
+                                />
+                              </div>
+                            </td>
                             <td className="px-4 py-3 whitespace-nowrap">{formatDate(item.dateAdded)}</td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               {item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : "N/A"}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap text-right">
-                              <Button variant="ghost" size="sm">
-                                <Edit className="h-4 w-4 mr-1" /> Edit
-                              </Button>
+                              <AdminEditDialog item={item} contentType="video" onSuccess={fetchContent} />
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="text-red-500"
-                                onClick={() => deleteContent(item, "video")}
+                                onClick={() => confirmDelete(item, "video")}
                               >
                                 <Trash className="h-4 w-4 mr-1" /> Delete
                               </Button>
@@ -711,6 +792,24 @@ export default function AdminDashboard() {
             <DialogTitle>Upload Video</DialogTitle>
           </DialogHeader>
           <VideoUploadForm onSuccess={handleVideoUploadSuccess} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete "{itemToDelete?.item.title}"? This action cannot be undone.</p>
+          <DialogFooter className="flex space-x-2 justify-end">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AdminAuthCheck>

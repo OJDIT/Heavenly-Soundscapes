@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { Instagram, Facebook, Youtube, Mail, MapPin } from "lucide-react"
-import Image from "next/image"
+import { Instagram, Facebook, Youtube, Mail } from "lucide-react"
 
 export default function Footer() {
   return (
@@ -10,13 +9,7 @@ export default function Footer() {
           <div className="space-y-4 md:w-1/3">
             <Link href="/" className="flex items-center gap-2">
               <div className="relative flex items-center">
-                <Image
-                  src="/logo.png"
-                  alt="Heavenly Soundscapes Logo"
-                  width={28}
-                  height={28}
-                  className="h-6 w-6 text-gold-500"
-                />
+                <img src="/logo.png" alt="Heavenly Soundscapes Logo" className="h-8 w-8" />
                 <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md"></div>
               </div>
               <span className="font-playfair font-bold text-lg">
@@ -24,12 +17,12 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Touching lives through sound. Professional faith-inspired music production based in
+              Touching lives through sound. Professional faith-inspired music production based in{" "}
               <a
-                href="https://www.google.com/maps?q=Coventry,UK"
+                href="https://www.google.com/maps/place/Coventry,+UK"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gold-400 hover:underline ml-1"
+                className="hover:text-gold-400 transition-colors"
               >
                 Coventry, UK
               </a>
@@ -74,32 +67,6 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-gold-500 mb-3">Contact</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href="mailto:contact@heavenlysoundscape.com"
-                  className="hover:text-gold-400 transition-colors flex items-center gap-2"
-                >
-                  <Mail className="h-4 w-4" />
-                  contact@heavenlysoundscape.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.google.com/maps?q=Coventry,UK"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-gold-400 transition-colors flex items-center gap-2"
-                >
-                  <MapPin className="h-4 w-4" />
-                  Coventry, UK
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
             <h4 className="font-semibold text-gold-500 mb-3">Connect</h4>
             <div className="flex gap-3">
               <a
@@ -119,11 +86,7 @@ export default function Footer() {
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
               </a>
-              <a
-                href="mailto:contact@heavenlysoundscape.com"
-                className="hover:text-gold-400 transition-colors"
-                aria-label="Email us"
-              >
+              <a href="mailto:contact@heavenlysoundscape.com" className="hover:text-gold-400 transition-colors">
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Email</span>
               </a>

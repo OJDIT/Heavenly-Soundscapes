@@ -20,15 +20,12 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
   const [error, setError] = useState<string | null>(null)
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null)
   const [loadAttempts, setLoadAttempts] = useState(0)
-  const [hasValidSource, setHasValidSource] = useState(false)
 
   // Create audio element on mount
   useEffect(() => {
-    // Check if the audioUrl is valid
-    if (!audioUrl || audioUrl === "#" || audioUrl.includes("placeholder.svg")) {
+    if (!audioUrl || audioUrl === "#") {
       setError("No audio source available")
       setIsLoading(false)
-      setHasValidSource(false)
       return
     }
 
@@ -49,19 +46,6 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
 
     setAudioElement(audio)
 
-    // Check if the URL is actually accessible
-    fetch(audioUrl, { method: "HEAD" })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Audio source not accessible: ${response.status}`)
-        }
-        setHasValidSource(true)
-      })
-      .catch((err) => {
-        console.warn("Audio source check failed:", err)
-        // Don't set error yet, let the audio element try to load it anyway
-      })
-
     // Clean up function
     return () => {
       if (audio) {
@@ -78,18 +62,16 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
     const handleCanPlay = () => {
       setIsLoading(false)
       setDuration(audioElement.duration || 0)
-      setHasValidSource(true)
     }
 
     const handleLoadError = (e: ErrorEvent) => {
       console.error("Audio loading error:", e)
       setIsLoading(false)
-      setHasValidSource(false)
 
       // Try to provide more specific error messages
-      if (e.message && e.message.includes("CORS")) {
+      if (e.message.includes("CORS")) {
         setError("Cross-origin error. Audio may not be accessible.")
-      } else if (e.message && e.message.includes("network")) {
+      } else if (e.message.includes("network")) {
         setError("Network error. Check your connection.")
       } else {
         setError("Failed to load audio")
@@ -139,11 +121,10 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
   }, [audioElement, loadAttempts])
 
   const togglePlay = () => {
-    if (!audioElement || error || !hasValidSource) return
+    if (!audioElement || error) return
 
     if (isPlaying) {
       audioElement.pause()
-      setIsPlaying(false)
     } else {
       // Use a promise with catch for better error handling
       const playPromise = audioElement.play()
@@ -152,7 +133,6 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
         playPromise
           .then(() => {
             // Playback started successfully
-            setIsPlaying(true)
           })
           .catch((err) => {
             console.error("Error playing audio:", err)
@@ -160,16 +140,14 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
             // Handle autoplay restrictions
             if (err.name === "NotAllowedError") {
               setError("Playback was blocked. Tap to play manually.")
-            } else if (err.message && err.message.includes("no supported sources")) {
-              setError("The audio format is not supported or the file is not accessible.")
-              setHasValidSource(false)
             } else {
               setError("Failed to play audio")
             }
-            setIsPlaying(false)
           })
       }
     }
+
+    setIsPlaying(!isPlaying)
   }
 
   const toggleMute = () => {
@@ -208,7 +186,6 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
               audioElement.load()
               setError(null)
               setIsLoading(true)
-              setLoadAttempts(0)
             }
           }}
         >
@@ -223,18 +200,6 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
       <div className="audio-player flex items-center justify-center gap-2 py-3">
         <div className="h-4 w-4 rounded-full border-2 border-gold-500 border-t-transparent animate-spin"></div>
         <span className="text-xs text-muted-foreground">Loading audio...</span>
-      </div>
-    )
-  }
-
-  // If we don't have a valid source but no error yet, show a placeholder
-  if (!hasValidSource && !error) {
-    return (
-      <div className="audio-player flex items-center gap-2 bg-amber-500/10 p-2 rounded">
-        <AlertCircle className="h-4 w-4 text-amber-400 flex-shrink-0" />
-        <div className="flex-1 text-xs text-amber-400 px-2">
-          Audio preview not available. {title ? `Listen to "${title}" in the store.` : ""}
-        </div>
       </div>
     )
   }

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Music, Headphones, SpeakerIcon as SpeakerWave, FileMusic, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import AudioPlayer from "@/components/audio-player"
+import MusicMotionBackground from "@/components/music-motion-background"
 
 interface AudioTrack {
   id: string
@@ -13,12 +14,12 @@ interface AudioTrack {
   category?: string
 }
 
-// Fallback tracks in case API fails - using placeholder URLs that won't trigger errors
+// Fallback tracks in case API fails
 const fallbackTracks = [
   {
     id: "fallback-1",
     title: "Serenity Worship Ambience",
-    url: "/placeholder-audio.mp3", // This will show a nice error message instead of console errors
+    url: "#",
     category: "Worship",
   },
 ]
@@ -52,16 +53,9 @@ export default function Home() {
 
         // If we got tracks from localStorage, use them
         if (tracks.length > 0) {
-          // Filter out tracks with placeholder URLs
-          const validTracks = tracks.filter(
-            (track) => track.url && !track.url.includes("placeholder.svg") && track.url !== "#",
-          )
-
-          if (validTracks.length > 0) {
-            setFeaturedTracks(validTracks)
-            setIsLoading(false)
-            return
-          }
+          setFeaturedTracks(tracks)
+          setIsLoading(false)
+          return
         }
 
         // Otherwise try the API
@@ -75,43 +69,27 @@ export default function Home() {
 
         if (data.success && data.data && data.data.length > 0) {
           // Get up to 3 tracks from the store
-          const apiTracks = data.data
-            .filter((track: any) => track.url && !track.url.includes("placeholder.svg") && track.url !== "#")
-            .map((track: any) => ({
-              id: track.id,
-              title: track.title,
-              url: track.url,
-              category: track.category,
-            }))
+          const apiTracks = data.data.map((track: any) => ({
+            id: track.id,
+            title: track.title,
+            url: track.url,
+            category: track.category,
+          }))
 
-          if (apiTracks.length > 0) {
-            setFeaturedTracks(apiTracks)
-          } else {
-            // If no valid tracks, use fallback
-            setFeaturedTracks(fallbackTracks)
-          }
+          setFeaturedTracks(apiTracks)
         } else {
           // If no tracks from API, try to get from audio API directly
           const audioResponse = await fetch("/api/content/audio")
           if (audioResponse.ok) {
             const audioData = await audioResponse.json()
             if (audioData.success && audioData.data && audioData.data.length > 0) {
-              const audioTracks = audioData.data
-                .filter((track: any) => track.url && !track.url.includes("placeholder.svg") && track.url !== "#")
-                .slice(0, 3)
-                .map((track: any) => ({
-                  id: track.id,
-                  title: track.title,
-                  url: track.url,
-                  category: track.category,
-                }))
-
-              if (audioTracks.length > 0) {
-                setFeaturedTracks(audioTracks)
-              } else {
-                // Use fallback tracks as last resort
-                setFeaturedTracks(fallbackTracks)
-              }
+              const audioTracks = audioData.data.slice(0, 3).map((track: any) => ({
+                id: track.id,
+                title: track.title,
+                url: track.url,
+                category: track.category,
+              }))
+              setFeaturedTracks(audioTracks)
             } else {
               // Use fallback tracks as last resort
               setFeaturedTracks(fallbackTracks)
@@ -138,18 +116,15 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="hero-gradient pt-32 pb-20 md:pt-40 md:pb-24 lg:pt-48 lg:pb-32 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          {/* This would be replaced with a video or background image in production */}
-          <div className="w-full h-full bg-black overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-radial from-gold-500/5 to-transparent opacity-50"></div>
-            <div className="absolute left-0 right-0 top-0 h-px bg-gold-gradient opacity-30"></div>
-            <div className="absolute left-0 right-0 bottom-0 h-px bg-gold-gradient opacity-30"></div>
-          </div>
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <MusicMotionBackground />
+          <div className="absolute left-0 right-0 top-0 h-px bg-gold-gradient opacity-30"></div>
+          <div className="absolute left-0 right-0 bottom-0 h-px bg-gold-gradient opacity-30"></div>
         </div>
 
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-playfair font-bold tracking-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-playfair font-bold tracking-tight animate-pulse-slow">
               Touching Lives Through <span className="gold-text">Sound</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground">

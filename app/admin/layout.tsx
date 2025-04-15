@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 
 export const metadata: Metadata = {
   title: "Admin - Heavenly Soundscapes",
@@ -19,13 +18,7 @@ export default function AdminLayout({
         <div className="container flex h-16 items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="relative flex items-center">
-              <Image
-                src="/logo.png"
-                alt="Heavenly Soundscapes Logo"
-                width={28}
-                height={28}
-                className="h-6 w-6 text-gold-500"
-              />
+              <img src="/logo.png" alt="Heavenly Soundscapes Logo" className="h-8 w-8" />
               <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md"></div>
             </div>
             <span className="font-playfair font-bold text-lg">

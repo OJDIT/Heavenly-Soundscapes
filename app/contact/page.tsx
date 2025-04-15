@@ -30,7 +30,12 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-medium mb-1">Email</h3>
-                    <p className="text-muted-foreground">contact@heavenlysoundscape.com</p>
+                    <a
+                      href="mailto:contact@heavenlysoundscape.com"
+                      className="text-muted-foreground hover:text-gold-400 transition-colors"
+                    >
+                      contact@heavenlysoundscape.com
+                    </a>
                   </div>
                 </div>
 
@@ -40,7 +45,14 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-medium mb-1">Location</h3>
-                    <p className="text-muted-foreground">Coventry, UK</p>
+                    <a
+                      href="https://www.google.com/maps/place/Coventry,+UK"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-gold-400 transition-colors"
+                    >
+                      Coventry, UK
+                    </a>
                   </div>
                 </div>
 
