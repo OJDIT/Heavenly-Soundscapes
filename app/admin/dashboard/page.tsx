@@ -360,6 +360,13 @@ export default function AdminDashboard() {
                 <span>Dashboard</span>
               </Link>
               <Link
+                href="/admin/utilities"
+                className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gold-500/5 text-muted-foreground hover:text-gold-400"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Utilities</span>
+              </Link>
+              <Link
                 href="/admin/dashboard?tab=audio"
                 className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gold-500/5 text-muted-foreground hover:text-gold-400"
               >

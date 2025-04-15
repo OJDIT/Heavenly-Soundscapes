@@ -14,16 +14,6 @@ interface AudioTrack {
   category?: string
 }
 
-// Fallback tracks in case API fails
-const fallbackTracks = [
-  {
-    id: "fallback-1",
-    title: "Serenity Worship Ambience",
-    url: "#",
-    category: "Worship",
-  },
-]
-
 export default function Home() {
   const [featuredTracks, setFeaturedTracks] = useState<AudioTrack[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -78,32 +68,14 @@ export default function Home() {
 
           setFeaturedTracks(apiTracks)
         } else {
-          // If no tracks from API, try to get from audio API directly
-          const audioResponse = await fetch("/api/content/audio")
-          if (audioResponse.ok) {
-            const audioData = await audioResponse.json()
-            if (audioData.success && audioData.data && audioData.data.length > 0) {
-              const audioTracks = audioData.data.slice(0, 3).map((track: any) => ({
-                id: track.id,
-                title: track.title,
-                url: track.url,
-                category: track.category,
-              }))
-              setFeaturedTracks(audioTracks)
-            } else {
-              // Use fallback tracks as last resort
-              setFeaturedTracks(fallbackTracks)
-            }
-          } else {
-            // Use fallback tracks as last resort
-            setFeaturedTracks(fallbackTracks)
-          }
+          // If no tracks from API, set empty array
+          setFeaturedTracks([])
         }
       } catch (err) {
         console.error("Error fetching featured tracks:", err)
         setError("Failed to load featured tracks")
-        // Use fallback tracks when there's an error
-        setFeaturedTracks(fallbackTracks)
+        // Set empty array when there's an error
+        setFeaturedTracks([])
       } finally {
         setIsLoading(false)
       }
@@ -161,12 +133,11 @@ export default function Home() {
                 <span className="ml-3 text-muted-foreground">Loading tracks...</span>
               </div>
             ) : featuredTracks.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                No tracks available. Visit our{" "}
-                <Link href="/store" className="text-gold-500 hover:underline">
-                  store
-                </Link>{" "}
-                to browse our collection.
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No tracks available yet.</p>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/admin/dashboard?tab=upload">Upload Content</Link>
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">

@@ -112,9 +112,13 @@ export default function StorePage() {
             </div>
 
             {filteredSoundPacks.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No sound packs found in this category.</p>
-                <Button asChild className="mt-4 bg-gold-500 hover:bg-gold-600 text-primary-foreground">
+              <div className="text-center py-16 border border-gold-500/20 rounded-lg bg-black/40">
+                <h2 className="text-xl font-semibold mb-4">No Sound Packs Available Yet</h2>
+                <p className="text-muted-foreground max-w-md mx-auto mb-8">
+                  The store is currently empty. Sound packs will appear here once they are uploaded through the admin
+                  dashboard.
+                </p>
+                <Button asChild className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
                   <Link href="/admin/dashboard?tab=upload">Upload Content</Link>
                 </Button>
               </div>
