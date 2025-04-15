@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Instagram, Facebook, Youtube, Mail } from "lucide-react"
+import { Instagram, Facebook, Youtube, Mail, MapPin } from "lucide-react"
 import Image from "next/image"
 
 export default function Footer() {
@@ -24,7 +24,16 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Touching lives through sound. Professional faith-inspired music production based in Coventry, UK.
+              Touching lives through sound. Professional faith-inspired music production based in
+              <a
+                href="https://www.google.com/maps?q=Coventry,UK"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold-400 hover:underline ml-1"
+              >
+                Coventry, UK
+              </a>
+              .
             </p>
           </div>
 
@@ -65,6 +74,32 @@ export default function Footer() {
           </div>
 
           <div>
+            <h4 className="font-semibold text-gold-500 mb-3">Contact</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a
+                  href="mailto:contact@heavenlysoundscape.com"
+                  className="hover:text-gold-400 transition-colors flex items-center gap-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  contact@heavenlysoundscape.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.google.com/maps?q=Coventry,UK"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gold-400 transition-colors flex items-center gap-2"
+                >
+                  <MapPin className="h-4 w-4" />
+                  Coventry, UK
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
             <h4 className="font-semibold text-gold-500 mb-3">Connect</h4>
             <div className="flex gap-3">
               <a
@@ -84,7 +119,11 @@ export default function Footer() {
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
               </a>
-              <a href="mailto:contact@heavenlysoundscape.com" className="hover:text-gold-400 transition-colors">
+              <a
+                href="mailto:contact@heavenlysoundscape.com"
+                className="hover:text-gold-400 transition-colors"
+                aria-label="Email us"
+              >
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Email</span>
               </a>

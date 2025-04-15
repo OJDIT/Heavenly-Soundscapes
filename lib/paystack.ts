@@ -1,3 +1,5 @@
+// Paystack API integration helper functions
+
 export type PaystackTransactionData = {
   amount: number // amount in kobo/pesewas (smallest currency unit)
   email: string

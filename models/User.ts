@@ -1,3 +1,6 @@
+// This is a stub file to satisfy imports
+// In a real app, this would be a MongoDB model
+
 interface IUser {
   _id: string
   email: string

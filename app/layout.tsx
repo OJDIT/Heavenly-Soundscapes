@@ -12,6 +12,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 export const metadata = {
   title: "Heavenly Soundscapes",
   description: "Touching lives through sound - Professional faith-inspired music production",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -31,3 +32,6 @@ export default function RootLayout({
     </html>
   )
 }
+
+
+import './globals.css'
