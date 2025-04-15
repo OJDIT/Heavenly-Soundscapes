@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Play, Pause, Volume2, VolumeX } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Play, Pause, Volume2, VolumeX, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 
@@ -16,57 +16,173 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null)
+  const [loadAttempts, setLoadAttempts] = useState(0)
+  const [hasValidSource, setHasValidSource] = useState(false)
 
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
+  // Create audio element on mount
   useEffect(() => {
-    const audio = new Audio(audioUrl)
-    audioRef.current = audio
+    // Check if the audioUrl is valid
+    if (!audioUrl || audioUrl === "#" || audioUrl.includes("placeholder.svg")) {
+      setError("No audio source available")
+      setIsLoading(false)
+      setHasValidSource(false)
+      return
+    }
 
-    audio.addEventListener("loadedmetadata", () => {
-      setDuration(audio.duration)
-    })
+    setIsLoading(true)
+    setError(null)
 
-    audio.addEventListener("timeupdate", () => {
-      setCurrentTime(audio.currentTime)
-      setProgress((audio.currentTime / audio.duration) * 100)
-    })
+    // Create a new audio element
+    const audio = new Audio()
 
-    audio.addEventListener("ended", () => {
-      setIsPlaying(false)
-      setProgress(0)
-      setCurrentTime(0)
-    })
+    // Add crossOrigin attribute to avoid CORS issues on mobile
+    audio.crossOrigin = "anonymous"
 
+    // Set preload attribute to help with mobile loading
+    audio.preload = "metadata"
+
+    // Set the source after adding event listeners
+    audio.src = audioUrl
+
+    setAudioElement(audio)
+
+    // Check if the URL is actually accessible
+    fetch(audioUrl, { method: "HEAD" })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Audio source not accessible: ${response.status}`)
+        }
+        setHasValidSource(true)
+      })
+      .catch((err) => {
+        console.warn("Audio source check failed:", err)
+        // Don't set error yet, let the audio element try to load it anyway
+      })
+
+    // Clean up function
     return () => {
-      audio.pause()
-      audio.src = ""
-      audio.removeEventListener("loadedmetadata", () => {})
-      audio.removeEventListener("timeupdate", () => {})
-      audio.removeEventListener("ended", () => {})
+      if (audio) {
+        audio.pause()
+        audio.src = ""
+      }
     }
   }, [audioUrl])
 
-  const togglePlay = () => {
-    if (isPlaying) {
-      audioRef.current?.pause()
-    } else {
-      audioRef.current?.play()
+  // Set up event listeners when audio element changes
+  useEffect(() => {
+    if (!audioElement) return
+
+    const handleCanPlay = () => {
+      setIsLoading(false)
+      setDuration(audioElement.duration || 0)
+      setHasValidSource(true)
     }
-    setIsPlaying(!isPlaying)
+
+    const handleLoadError = (e: ErrorEvent) => {
+      console.error("Audio loading error:", e)
+      setIsLoading(false)
+      setHasValidSource(false)
+
+      // Try to provide more specific error messages
+      if (e.message && e.message.includes("CORS")) {
+        setError("Cross-origin error. Audio may not be accessible.")
+      } else if (e.message && e.message.includes("network")) {
+        setError("Network error. Check your connection.")
+      } else {
+        setError("Failed to load audio")
+      }
+
+      // If we've tried less than 3 times, try again with a different approach
+      if (loadAttempts < 3) {
+        setLoadAttempts((prev) => prev + 1)
+
+        // Try with a different preload strategy
+        audioElement.preload = loadAttempts === 1 ? "auto" : "none"
+
+        // Small timeout before retrying
+        setTimeout(() => {
+          audioElement.load()
+        }, 1000)
+      }
+    }
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audioElement.currentTime)
+      setProgress((audioElement.currentTime / (audioElement.duration || 1)) * 100)
+    }
+
+    const handleEnded = () => {
+      setIsPlaying(false)
+      setProgress(0)
+      setCurrentTime(0)
+    }
+
+    // Add event listeners
+    audioElement.addEventListener("canplay", handleCanPlay)
+    audioElement.addEventListener("error", handleLoadError as EventListener)
+    audioElement.addEventListener("timeupdate", handleTimeUpdate)
+    audioElement.addEventListener("ended", handleEnded)
+
+    // Try to load the audio
+    audioElement.load()
+
+    // Clean up function
+    return () => {
+      audioElement.removeEventListener("canplay", handleCanPlay)
+      audioElement.removeEventListener("error", handleLoadError as EventListener)
+      audioElement.removeEventListener("timeupdate", handleTimeUpdate)
+      audioElement.removeEventListener("ended", handleEnded)
+    }
+  }, [audioElement, loadAttempts])
+
+  const togglePlay = () => {
+    if (!audioElement || error || !hasValidSource) return
+
+    if (isPlaying) {
+      audioElement.pause()
+      setIsPlaying(false)
+    } else {
+      // Use a promise with catch for better error handling
+      const playPromise = audioElement.play()
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback started successfully
+            setIsPlaying(true)
+          })
+          .catch((err) => {
+            console.error("Error playing audio:", err)
+
+            // Handle autoplay restrictions
+            if (err.name === "NotAllowedError") {
+              setError("Playback was blocked. Tap to play manually.")
+            } else if (err.message && err.message.includes("no supported sources")) {
+              setError("The audio format is not supported or the file is not accessible.")
+              setHasValidSource(false)
+            } else {
+              setError("Failed to play audio")
+            }
+            setIsPlaying(false)
+          })
+      }
+    }
   }
 
   const toggleMute = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted
+    if (audioElement) {
+      audioElement.muted = !isMuted
       setIsMuted(!isMuted)
     }
   }
 
   const handleSeek = (value: number[]) => {
     const newTime = (value[0] / 100) * (duration || 0)
-    if (audioRef.current) {
-      audioRef.current.currentTime = newTime
+    if (audioElement) {
+      audioElement.currentTime = newTime
       setCurrentTime(newTime)
     }
   }
@@ -78,29 +194,79 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
   }
 
+  if (error) {
+    return (
+      <div className="audio-player flex items-center gap-2 bg-red-500/10 p-2 rounded">
+        <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+        <div className="flex-1 text-xs text-red-400 px-2">{error}</div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+          onClick={() => {
+            if (audioElement) {
+              audioElement.load()
+              setError(null)
+              setIsLoading(true)
+              setLoadAttempts(0)
+            }
+          }}
+        >
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="audio-player flex items-center justify-center gap-2 py-3">
+        <div className="h-4 w-4 rounded-full border-2 border-gold-500 border-t-transparent animate-spin"></div>
+        <span className="text-xs text-muted-foreground">Loading audio...</span>
+      </div>
+    )
+  }
+
+  // If we don't have a valid source but no error yet, show a placeholder
+  if (!hasValidSource && !error) {
+    return (
+      <div className="audio-player flex items-center gap-2 bg-amber-500/10 p-2 rounded">
+        <AlertCircle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+        <div className="flex-1 text-xs text-amber-400 px-2">
+          Audio preview not available. {title ? `Listen to "${title}" in the store.` : ""}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="audio-player">
+    <div className="audio-player flex items-center gap-2">
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-full hover:bg-gold-500/20 text-gold-500"
+        className="h-8 w-8 rounded-full hover:bg-gold-500/20 text-gold-500 flex-shrink-0"
         onClick={togglePlay}
       >
         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
       </Button>
 
-      <div className="flex-1 flex flex-col">
-        {title && <span className="text-xs mb-1 text-gold-400">{title}</span>}
+      <div className="flex-1 flex flex-col min-w-0">
+        {title && <span className="text-xs mb-1 text-gold-400 truncate">{title}</span>}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground w-10">{formatTime(currentTime)}</span>
+          <span className="text-xs text-muted-foreground w-10 flex-shrink-0">{formatTime(currentTime)}</span>
           <div className="audio-player-progress flex-1">
             <Slider value={[progress]} max={100} step={0.1} onValueChange={handleSeek} className="w-full h-1" />
           </div>
-          <span className="text-xs text-muted-foreground w-10">{formatTime(duration)}</span>
+          <span className="text-xs text-muted-foreground w-10 flex-shrink-0">{formatTime(duration)}</span>
         </div>
       </div>
 
-      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gold-500/20 text-gold-500" onClick={toggleMute}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 hover:bg-gold-500/20 text-gold-500 flex-shrink-0 hidden sm:flex"
+        onClick={toggleMute}
+      >
         {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
       </Button>
     </div>

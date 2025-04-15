@@ -136,7 +136,7 @@ export default function PortfolioPage() {
           <p className="text-muted-foreground mb-6">
             We'd love to discuss your specific needs and create something uniquely tailored to your vision.
           </p>
-          <Button asChild>
+          <Button asChild className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
             <Link href="/contact">Contact Us</Link>
           </Button>
         </div>

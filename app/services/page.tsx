@@ -129,7 +129,7 @@ export default function ServicesPage() {
                     </li>
                   ))}
                 </ul>
-                <Button asChild>
+                <Button asChild className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
                   <Link href="/contact">{service.cta}</Link>
                 </Button>
               </div>

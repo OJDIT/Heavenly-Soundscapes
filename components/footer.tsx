@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Instagram, Facebook, Youtube, Mail, Music } from "lucide-react"
+import { Instagram, Facebook, Youtube, Mail } from "lucide-react"
+import Image from "next/image"
 
 export default function Footer() {
   return (
@@ -9,7 +10,13 @@ export default function Footer() {
           <div className="space-y-4 md:w-1/3">
             <Link href="/" className="flex items-center gap-2">
               <div className="relative flex items-center">
-                <Music className="h-6 w-6 text-gold-500" />
+                <Image
+                  src="/logo.png"
+                  alt="Heavenly Soundscapes Logo"
+                  width={28}
+                  height={28}
+                  className="h-6 w-6 text-gold-500"
+                />
                 <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md"></div>
               </div>
               <span className="font-playfair font-bold text-lg">
@@ -49,28 +56,38 @@ export default function Footer() {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link href="/admin" className="hover:text-gold-400 transition-colors">
+                  Admin
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-gold-500 mb-3">Connect</h4>
             <div className="flex gap-3">
-              <Link href="#" className="hover:text-gold-400 transition-colors">
+              <a
+                href="https://www.instagram.com/heavenlysoundscape?igsh=MXZmbTJocGVpZGY1ZA=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gold-400 transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
-              </Link>
-              <Link href="#" className="hover:text-gold-400 transition-colors">
+              </a>
+              <a href="#" className="hover:text-gold-400 transition-colors">
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
-              </Link>
-              <Link href="#" className="hover:text-gold-400 transition-colors">
+              </a>
+              <a href="#" className="hover:text-gold-400 transition-colors">
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
-              </Link>
-              <Link href="mailto:contact@heavenlysoundscapes.com" className="hover:text-gold-400 transition-colors">
+              </a>
+              <a href="mailto:contact@heavenlysoundscape.com" className="hover:text-gold-400 transition-colors">
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Email</span>
-              </Link>
+              </a>
             </div>
           </div>
         </div>

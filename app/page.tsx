@@ -1,9 +1,139 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Music, Headphones, SpeakerIcon as SpeakerWave, FileMusic, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import AudioPlayer from "@/components/audio-player"
 
+interface AudioTrack {
+  id: string
+  title: string
+  url: string
+  category?: string
+}
+
+// Fallback tracks in case API fails - using placeholder URLs that won't trigger errors
+const fallbackTracks = [
+  {
+    id: "fallback-1",
+    title: "Serenity Worship Ambience",
+    url: "/placeholder-audio.mp3", // This will show a nice error message instead of console errors
+    category: "Worship",
+  },
+]
+
 export default function Home() {
+  const [featuredTracks, setFeaturedTracks] = useState<AudioTrack[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchFeaturedTracks() {
+      try {
+        setIsLoading(true)
+
+        // First try to get audio content directly from localStorage
+        let tracks: AudioTrack[] = []
+        try {
+          const storedContent = localStorage.getItem("audioContent")
+          if (storedContent) {
+            const audioContent = JSON.parse(storedContent)
+            tracks = audioContent.slice(0, 3).map((track: any) => ({
+              id: track.id,
+              title: track.title,
+              url: track.url,
+              category: track.category,
+            }))
+          }
+        } catch (storageError) {
+          console.error("Error accessing localStorage:", storageError)
+        }
+
+        // If we got tracks from localStorage, use them
+        if (tracks.length > 0) {
+          // Filter out tracks with placeholder URLs
+          const validTracks = tracks.filter(
+            (track) => track.url && !track.url.includes("placeholder.svg") && track.url !== "#",
+          )
+
+          if (validTracks.length > 0) {
+            setFeaturedTracks(validTracks)
+            setIsLoading(false)
+            return
+          }
+        }
+
+        // Otherwise try the API
+        const response = await fetch("/api/content/featured")
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch featured tracks: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data.success && data.data && data.data.length > 0) {
+          // Get up to 3 tracks from the store
+          const apiTracks = data.data
+            .filter((track: any) => track.url && !track.url.includes("placeholder.svg") && track.url !== "#")
+            .map((track: any) => ({
+              id: track.id,
+              title: track.title,
+              url: track.url,
+              category: track.category,
+            }))
+
+          if (apiTracks.length > 0) {
+            setFeaturedTracks(apiTracks)
+          } else {
+            // If no valid tracks, use fallback
+            setFeaturedTracks(fallbackTracks)
+          }
+        } else {
+          // If no tracks from API, try to get from audio API directly
+          const audioResponse = await fetch("/api/content/audio")
+          if (audioResponse.ok) {
+            const audioData = await audioResponse.json()
+            if (audioData.success && audioData.data && audioData.data.length > 0) {
+              const audioTracks = audioData.data
+                .filter((track: any) => track.url && !track.url.includes("placeholder.svg") && track.url !== "#")
+                .slice(0, 3)
+                .map((track: any) => ({
+                  id: track.id,
+                  title: track.title,
+                  url: track.url,
+                  category: track.category,
+                }))
+
+              if (audioTracks.length > 0) {
+                setFeaturedTracks(audioTracks)
+              } else {
+                // Use fallback tracks as last resort
+                setFeaturedTracks(fallbackTracks)
+              }
+            } else {
+              // Use fallback tracks as last resort
+              setFeaturedTracks(fallbackTracks)
+            }
+          } else {
+            // Use fallback tracks as last resort
+            setFeaturedTracks(fallbackTracks)
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching featured tracks:", err)
+        setError("Failed to load featured tracks")
+        // Use fallback tracks when there's an error
+        setFeaturedTracks(fallbackTracks)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFeaturedTracks()
+  }, [])
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -26,10 +156,15 @@ export default function Home() {
               Professional faith-inspired music production that glorifies God and elevates the gospel.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
                 <Link href="/contact">Book a Session</Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="border-gold-500/70 bg-transparent hover:bg-gold-500/10 text-foreground shadow-[0_0_10px_rgba(247,196,20,0.1)]"
+              >
                 <Link href="/store">Browse Sound Packs</Link>
               </Button>
             </div>
@@ -41,8 +176,42 @@ export default function Home() {
       <section className="py-12 -mt-6 md:-mt-8 relative z-10">
         <div className="container max-w-3xl">
           <div className="border border-gold-500/20 bg-black/60 backdrop-blur-sm rounded-xl p-4 md:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-            <h3 className="text-lg font-medium mb-3 text-center">Featured Track Preview</h3>
-            <AudioPlayer audioUrl="#" title="Serenity Worship Ambience (Preview)" />
+            <h3 className="text-lg font-medium mb-3 text-center">
+              Featured Track{featuredTracks.length !== 1 ? "s" : ""} Preview
+            </h3>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-gold-500 border-r-transparent"></div>
+                <span className="ml-3 text-muted-foreground">Loading tracks...</span>
+              </div>
+            ) : featuredTracks.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                No tracks available. Visit our{" "}
+                <Link href="/store" className="text-gold-500 hover:underline">
+                  store
+                </Link>{" "}
+                to browse our collection.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {featuredTracks.map((track) => (
+                  <div key={track.id} className="border border-gold-500/10 bg-black/40 rounded-lg p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-medium">{track.title}</h4>
+                      {track.category && <span className="text-xs text-gold-400">{track.category}</span>}
+                    </div>
+                    <AudioPlayer audioUrl={track.url} title={track.title} />
+                  </div>
+                ))}
+
+                <div className="text-center pt-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/store">View All Tracks</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -124,13 +293,15 @@ export default function Home() {
 
         <div className="container relative">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h2 className="text-2xl md:text-4xl font-playfair font-bold">Ready to Elevate Your Sound?</h2>
+            <h2 className="text-2xl md:text-4xl font-playfair font-bold">
+              Ready to <span className="gold-text">Elevate</span> Your Sound?
+            </h2>
             <p className="text-muted-foreground">
               Join the many worship artists, churches, and ministries that have found their perfect sound with Heavenly
               Soundscapes.
             </p>
             <div className="pt-4">
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
                 <Link href="/contact">Request a Quote</Link>
               </Button>
             </div>

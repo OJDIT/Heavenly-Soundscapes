@@ -3,7 +3,6 @@ import { Mail, MapPin, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 
 export default function ContactPage() {
@@ -31,7 +30,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-medium mb-1">Email</h3>
-                    <p className="text-muted-foreground">contact@heavenlysoundscapes.com</p>
+                    <p className="text-muted-foreground">contact@heavenlysoundscape.com</p>
                   </div>
                 </div>
 
@@ -62,11 +61,7 @@ export default function ContactPage() {
             </div>
 
             <div className="aspect-video relative rounded-lg overflow-hidden">
-              <img
-                src="/placeholder.svg?height=400&width=600"
-                alt="Studio space"
-                className="object-cover w-full h-full"
-              />
+              <img src="/recording-studio-session.png" alt="Studio space" className="object-cover w-full h-full" />
             </div>
           </div>
 
@@ -88,20 +83,19 @@ export default function ContactPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="service">Service Interested In</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a service" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="music-production">Music Production</SelectItem>
-                    <SelectItem value="mixing-mastering">Mixing & Mastering</SelectItem>
-                    <SelectItem value="church-sound">Church Sound Design</SelectItem>
-                    <SelectItem value="sound-packs">Sound Packs</SelectItem>
-                    <SelectItem value="instrument-tracking">Instrument Tracking</SelectItem>
-                    <SelectItem value="video-services">Video Services</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  id="service"
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">Select a service</option>
+                  <option value="music-production">Music Production</option>
+                  <option value="mixing-mastering">Mixing & Mastering</option>
+                  <option value="church-sound">Church Sound Design</option>
+                  <option value="sound-packs">Sound Packs</option>
+                  <option value="instrument-tracking">Instrument Tracking</option>
+                  <option value="video-services">Video Services</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
 
               <div className="space-y-2">
@@ -109,7 +103,7 @@ export default function ContactPage() {
                 <Textarea id="message" placeholder="Tell us about your project or inquiry" className="min-h-[150px]" />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-gold-500 hover:bg-gold-600 text-primary-foreground">
                 Send Message
               </Button>
 

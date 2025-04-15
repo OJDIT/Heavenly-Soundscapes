@@ -62,7 +62,7 @@ export default function FeaturedBeats() {
             <AudioPlayer />
           </CardContent>
           <CardFooter className="flex justify-between border-t p-3 md:p-4 flex-wrap gap-2">
-            <div className="font-bold">${beat.price}</div>
+            <div className="font-bold">£{beat.price}</div>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" className="text-xs md:text-sm h-8">
                 <Link href={`/catalog/${beat.id}`}>Details</Link>

@@ -46,7 +46,7 @@ export default function BeatDetailPage({ params }: { params: { id: string } }) {
 
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">{beat.title}</h1>
-          <div className="text-xl md:text-2xl font-bold text-purple-600 mb-4 md:mb-6">${beat.price}</div>
+          <div className="text-xl md:text-2xl font-bold text-purple-600 mb-4 md:mb-6">£{beat.price}</div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
             <div className="bg-muted p-2 md:p-3 rounded-lg text-center">
