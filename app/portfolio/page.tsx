@@ -23,24 +23,6 @@ export default function PortfolioPage() {
       description: "Meditative ambient soundscape with scripture inspiration.",
       url: "#",
     },
-    {
-      title: "Spirit of Praise",
-      genre: "Gospel",
-      description: "Contemporary gospel beat with energetic percussion.",
-      url: "#",
-    },
-    {
-      title: "Heavenly Meditation",
-      genre: "Ambient",
-      description: "Calming ambient piece for prayer and reflection.",
-      url: "#",
-    },
-    {
-      title: "Walk in Faith",
-      genre: "Worship",
-      description: "Modern worship track with electric guitar and synths.",
-      url: "#",
-    },
   ]
 
   const videos = [
@@ -53,12 +35,6 @@ export default function PortfolioPage() {
     {
       title: "Studio Session - Gospel Choir",
       description: "Behind the scenes of our latest gospel choir recording.",
-      thumbnail: "/placeholder.svg?height=400&width=720",
-      url: "#",
-    },
-    {
-      title: "Ambient Worship Visuals",
-      description: "Visual elements created for ambient worship sets.",
       thumbnail: "/placeholder.svg?height=400&width=720",
       url: "#",
     },
@@ -101,7 +77,7 @@ export default function PortfolioPage() {
           </TabsContent>
 
           <TabsContent value="video">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {videos.map((video, i) => (
                 <div
                   key={i}

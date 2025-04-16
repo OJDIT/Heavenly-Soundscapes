@@ -47,6 +47,22 @@ export default function DeepCleanPage() {
     }
   }
 
+  const handleManualClear = () => {
+    try {
+      localStorage.setItem("audioContent", "[]")
+      localStorage.setItem("featuredTracks", "[]")
+      localStorage.setItem("videoContent", "[]")
+      setLocalStorageCleared(true)
+      setResult({
+        success: true,
+        message: "Local storage cleared successfully",
+      })
+    } catch (err) {
+      console.error("Error clearing localStorage:", err)
+      setError(err instanceof Error ? err.message : "An unknown error occurred")
+    }
+  }
+
   return (
     <AdminAuthCheck>
       <div className="container py-12 pt-24">
@@ -67,6 +83,10 @@ export default function DeepCleanPage() {
             >
               {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash className="h-4 w-4" />}
               {isLoading ? "Performing Deep Clean..." : "Perform Emergency Deep Clean"}
+            </Button>
+
+            <Button onClick={handleManualClear} className="w-full sm:w-auto" variant="outline">
+              Manual localStorage Clear Only
             </Button>
           </div>
 

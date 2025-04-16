@@ -165,8 +165,7 @@ export default function StorePage() {
                         <Button asChild className="flex-1 bg-gold-500 hover:bg-gold-600 text-primary-foreground">
                           <Link href={`/store/${pack.id}`}>
                             <ShoppingBag className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">Buy Now</span>
-                            <span className="sm:hidden">Buy</span>
+                            <span>View Details</span>
                           </Link>
                         </Button>
                         <Button variant="outline" size="icon" className="flex-shrink-0">

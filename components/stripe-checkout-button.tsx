@@ -4,27 +4,29 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { initializeTransaction } from "@/lib/paystack"
+import { createCheckoutSession } from "@/lib/stripe"
 
-interface PaystackCheckoutButtonProps {
+interface StripeCheckoutButtonProps {
   amount: number
-  email: string
   productName: string
   productId: string
   className?: string
-  onSuccess?: (reference: string) => void
+  onSuccess?: (url: string) => void
   onError?: (error: Error) => void
+  successUrl?: string
+  cancelUrl?: string
 }
 
-export default function PaystackCheckoutButton({
+export default function StripeCheckoutButton({
   amount,
-  email,
   productName,
   productId,
   className,
   onSuccess,
   onError,
-}: PaystackCheckoutButtonProps) {
+  successUrl,
+  cancelUrl,
+}: StripeCheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -32,26 +34,24 @@ export default function PaystackCheckoutButton({
     setIsLoading(true)
 
     try {
-      // Generate a unique reference
-      const reference = `HSS_${Date.now()}_${Math.floor(Math.random() * 1000)}`
-
-      const response = await initializeTransaction({
+      const response = await createCheckoutSession({
         amount,
-        email,
-        reference,
-        metadata: {
-          product_id: productId,
-          product_name: productName,
-        },
-        callback_url: `${window.location.origin}/payment/callback?reference=${reference}`,
-        currency: "GBP", // Changed from NGN to GBP
+        productName,
+        productId,
+        currency: "GBP", // British Pounds
+        successUrl,
+        cancelUrl,
       })
 
-      if (response.status && response.data?.authorization_url) {
-        // Redirect to Paystack payment page
-        window.location.href = response.data.authorization_url
+      if (response.success && response.url) {
+        if (onSuccess) {
+          onSuccess(response.url)
+        } else {
+          // Redirect to Stripe checkout page
+          window.location.href = response.url
+        }
       } else {
-        throw new Error(response.message || "Failed to initialize payment")
+        throw new Error(response.message || "Failed to create checkout session")
       }
     } catch (error) {
       console.error("Payment initialization error:", error)

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Music, AlertCircle } from "lucide-react"
+import { Music, AlertCircle, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -146,18 +146,6 @@ export default function SimpleAudioUploadForm({ onSuccess }: { onSuccess?: () =>
 
   return (
     <form ref={formRef} onSubmit={handleUpload} className="space-y-4 max-w-2xl">
-      <div className="bg-amber-500/10 border border-amber-500/50 text-amber-500 rounded-md p-3 text-sm mb-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium">Simple Upload Mode</p>
-            <p className="mt-1">
-              This form uses browser storage instead of Vercel Blob. Uploads will be stored locally in your browser.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {error && (
         <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 text-sm">
           <div className="flex items-start gap-2">
@@ -168,8 +156,9 @@ export default function SimpleAudioUploadForm({ onSuccess }: { onSuccess?: () =>
       )}
 
       {uploadSuccess && (
-        <div className="bg-green-500/10 border border-green-500/50 text-green-500 rounded-md p-3 text-sm">
-          Audio uploaded successfully!
+        <div className="bg-green-500/10 border border-green-500/50 text-green-500 rounded-md p-3 text-sm flex items-start gap-2">
+          <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <p>Audio uploaded successfully!</p>
         </div>
       )}
 

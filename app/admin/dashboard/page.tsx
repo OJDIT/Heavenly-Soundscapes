@@ -1,7 +1,5 @@
 "use client"
 
-import { DialogFooter } from "@/components/ui/dialog"
-
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -23,14 +21,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import AdminAuthCheck from "@/components/admin-auth-check"
 import AudioUploadForm from "@/components/audio-upload-form"
 import VideoUploadForm from "@/components/video-upload-form"
 import AdminProfileSettings from "@/components/admin-profile-settings"
 import SimpleAudioUploadForm from "@/components/simple-audio-upload-form"
 import LargeFileUploadForm from "@/components/large-file-upload-form"
-import AdminEditDialog from "@/components/admin-edit-dialog"
 
 // Define types for our content
 interface AudioContent {
@@ -125,21 +121,57 @@ export default function AdminDashboard() {
     setError(null)
 
     try {
-      // Fetch audio content
-      const audioResponse = await fetch("/api/content/audio")
-      if (!audioResponse.ok) {
-        throw new Error("Failed to fetch audio content")
-      }
-      const audioData = await audioResponse.json()
-      setAudioContent(audioData.data || [])
+      // First try to get content from localStorage
+      let audioData = []
+      let videoData = []
 
-      // Fetch video content
-      const videoResponse = await fetch("/api/content/video")
-      if (!videoResponse.ok) {
-        throw new Error("Failed to fetch video content")
+      try {
+        const storedAudioContent = localStorage.getItem("audioContent")
+        if (storedAudioContent) {
+          audioData = JSON.parse(storedAudioContent)
+        }
+
+        const storedVideoContent = localStorage.getItem("videoContent")
+        if (storedVideoContent) {
+          videoData = JSON.parse(storedVideoContent)
+        }
+      } catch (storageError) {
+        console.error("Error accessing localStorage:", storageError)
       }
-      const videoData = await videoResponse.json()
-      setVideoContent(videoData.data || [])
+
+      // If we have data in localStorage, use it
+      if (audioData.length > 0) {
+        setAudioContent(audioData)
+      } else {
+        // Otherwise try the API
+        try {
+          const audioResponse = await fetch("/api/content/audio")
+          if (audioResponse.ok) {
+            const data = await audioResponse.json()
+            if (data.success && data.data) {
+              setAudioContent(data.data)
+            }
+          }
+        } catch (apiError) {
+          console.error("Error fetching audio from API:", apiError)
+        }
+      }
+
+      if (videoData.length > 0) {
+        setVideoContent(videoData)
+      } else {
+        try {
+          const videoResponse = await fetch("/api/content/video")
+          if (videoResponse.ok) {
+            const data = await videoResponse.json()
+            if (data.success && data.data) {
+              setVideoContent(data.data)
+            }
+          }
+        } catch (apiError) {
+          console.error("Error fetching video from API:", apiError)
+        }
+      }
     } catch (err) {
       console.error("Error fetching content:", err)
       setError("Failed to load content. Please try again.")
@@ -166,52 +198,29 @@ export default function AdminDashboard() {
     try {
       const { item, type } = itemToDelete
 
-      // Determine the path to delete
-      let path = ""
-      const bucket = type === "audio" ? "audio-files" : "video-files"
+      // Remove the item from localStorage
+      try {
+        const storageKey = type === "audio" ? "audioContent" : "videoContent"
+        const storedContent = localStorage.getItem(storageKey)
 
-      // First try to use the path property if it exists
-      if (item.path) {
-        path = item.path
+        if (storedContent) {
+          const content = JSON.parse(storedContent)
+          const updatedContent = content.filter((i: any) => i.id !== item.id)
+          localStorage.setItem(storageKey, JSON.stringify(updatedContent))
+
+          // Update state
+          if (type === "audio") {
+            setAudioContent(updatedContent)
+          } else {
+            setVideoContent(updatedContent)
+          }
+
+          setSuccess(`${type === "audio" ? "Audio" : "Video"} deleted successfully`)
+        }
+      } catch (storageError) {
+        console.error("Error updating localStorage:", storageError)
+        throw new Error("Failed to delete item from storage")
       }
-      // Then try to use the filename if it exists
-      else if (item.filename) {
-        path = item.filename
-      }
-      // Otherwise use the URL
-      else {
-        path = item.url
-      }
-
-      console.log(`Deleting ${type} with path: ${path}`)
-
-      const response = await fetch("/api/content/delete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bucket,
-          path,
-          contentType: type,
-          id: item.id,
-          storageType: item.storageType || "supabase",
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to delete file")
-      }
-
-      // Remove the item from the local state immediately for better UX
-      if (type === "audio") {
-        setAudioContent((prev) => prev.filter((audio) => audio.id !== item.id))
-      } else {
-        setVideoContent((prev) => prev.filter((video) => video.id !== item.id))
-      }
-
-      setSuccess(`${type === "audio" ? "Audio" : "Video"} deleted successfully`)
 
       // Clear success message after a few seconds
       setTimeout(() => {
@@ -249,38 +258,30 @@ export default function AdminDashboard() {
         throw new Error("Please enter a valid price")
       }
 
-      // Create updated item with just the price change
-      const updatedItem = {
-        ...item,
-        price: priceValue,
+      // Update in localStorage
+      try {
+        const storageKey = contentType === "audio" ? "audioContent" : "videoContent"
+        const storedContent = localStorage.getItem(storageKey)
+
+        if (storedContent) {
+          const content = JSON.parse(storedContent)
+          const updatedContent = content.map((i: any) => (i.id === item.id ? { ...i, price: priceValue } : i))
+
+          localStorage.setItem(storageKey, JSON.stringify(updatedContent))
+
+          // Update state
+          if (contentType === "audio") {
+            setAudioContent(updatedContent)
+          } else {
+            setVideoContent(updatedContent)
+          }
+
+          setSuccess("Price updated successfully")
+        }
+      } catch (storageError) {
+        console.error("Error updating localStorage:", storageError)
+        throw new Error("Failed to update price in storage")
       }
-
-      // Send update request to API
-      const response = await fetch("/api/content/update", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: item.id,
-          contentType,
-          updatedItem,
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to update price")
-      }
-
-      // Update local state
-      if (contentType === "audio") {
-        setAudioContent((prev) => prev.map((audio) => (audio.id === item.id ? { ...audio, price: priceValue } : audio)))
-      } else {
-        setVideoContent((prev) => prev.map((video) => (video.id === item.id ? { ...video, price: priceValue } : video)))
-      }
-
-      setSuccess("Price updated successfully")
 
       // Clear success message after a few seconds
       setTimeout(() => {
@@ -300,19 +301,23 @@ export default function AdminDashboard() {
   const filteredAudioContent = audioContent.filter(
     (item) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase()),
+      item.category?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   const filteredVideoContent = videoContent.filter(
     (item) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase()),
+      item.category?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString()
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString()
+    } catch (e) {
+      return "Unknown date"
+    }
   }
 
   if (isInitializing) {
@@ -365,6 +370,13 @@ export default function AdminDashboard() {
               >
                 <Settings className="h-4 w-4" />
                 <span>Utilities</span>
+              </Link>
+              <Link
+                href="/admin/deep-clean"
+                className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gold-500/5 text-muted-foreground hover:text-gold-400"
+              >
+                <Trash className="h-4 w-4" />
+                <span>Deep Clean</span>
               </Link>
               <Link
                 href="/admin/dashboard?tab=audio"
@@ -472,17 +484,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {(filteredAudioContent.some((item) => item.size && item.size > 50 * 1024 * 1024) ||
-              filteredVideoContent.some((item) => item.size && item.size > 50 * 1024 * 1024)) && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-3 mb-6 flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Large files detected</p>
-                  <p className="mt-1">Some files exceed the 50MB limit. Please delete these files to avoid errors.</p>
-                </div>
-              </div>
-            )}
-
             <Tabs defaultValue="audio" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
                 <TabsTrigger value="audio">Audio</TabsTrigger>
@@ -519,7 +520,7 @@ export default function AdminDashboard() {
                     </div>
                     <Button
                       className="bg-gold-500 hover:bg-gold-600 text-primary-foreground w-full sm:w-auto"
-                      onClick={() => setShowAudioUploadDialog(true)}
+                      onClick={() => setActiveTab("upload")}
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Audio
@@ -546,9 +547,6 @@ export default function AdminDashboard() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Date Added
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Size
-                        </th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Actions
                         </th>
@@ -557,13 +555,13 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-gold-500/10">
                       {isLoading ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-3 text-center">
+                          <td colSpan={6} className="px-4 py-3 text-center">
                             <div className="animate-pulse text-gold-500">Loading...</div>
                           </td>
                         </tr>
                       ) : filteredAudioContent.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-3 text-center text-muted-foreground">
+                          <td colSpan={6} className="px-4 py-3 text-center text-muted-foreground">
                             {searchTerm ? "No matching audio content found" : "No audio content yet. Add some!"}
                           </td>
                         </tr>
@@ -571,8 +569,8 @@ export default function AdminDashboard() {
                         filteredAudioContent.map((item) => (
                           <tr key={item.id} className="hover:bg-gold-500/5">
                             <td className="px-4 py-3 whitespace-nowrap">{item.title}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">{item.category}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">{item.duration}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">{item.category || "Uncategorized"}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">{item.duration || "N/A"}</td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <div className="flex items-center">
                                 <span className="mr-1">£</span>
@@ -597,11 +595,7 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">{formatDate(item.dateAdded)}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              {item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : "N/A"}
-                            </td>
                             <td className="px-4 py-3 whitespace-nowrap text-right">
-                              <AdminEditDialog item={item} contentType="audio" onSuccess={fetchContent} />
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -662,9 +656,6 @@ export default function AdminDashboard() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Date Added
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Size
-                        </th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Actions
                         </th>
@@ -673,13 +664,13 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-gold-500/10">
                       {isLoading ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-3 text-center">
+                          <td colSpan={6} className="px-4 py-3 text-center">
                             <div className="animate-pulse text-gold-500">Loading...</div>
                           </td>
                         </tr>
                       ) : filteredVideoContent.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-3 text-center text-muted-foreground">
+                          <td colSpan={6} className="px-4 py-3 text-center text-muted-foreground">
                             {searchTerm ? "No matching video content found" : "No video content yet. Add some!"}
                           </td>
                         </tr>
@@ -687,8 +678,8 @@ export default function AdminDashboard() {
                         filteredVideoContent.map((item) => (
                           <tr key={item.id} className="hover:bg-gold-500/5">
                             <td className="px-4 py-3 whitespace-nowrap">{item.title}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">{item.category}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">{item.duration}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">{item.category || "Uncategorized"}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">{item.duration || "N/A"}</td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <div className="flex items-center">
                                 <span className="mr-1">£</span>
@@ -713,11 +704,7 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">{formatDate(item.dateAdded)}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              {item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : "N/A"}
-                            </td>
                             <td className="px-4 py-3 whitespace-nowrap text-right">
-                              <AdminEditDialog item={item} contentType="video" onSuccess={fetchContent} />
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -737,21 +724,25 @@ export default function AdminDashboard() {
 
               <TabsContent value="upload" className="space-y-6">
                 <h2 className="text-xl font-semibold">Upload New Content</h2>
-                <Tabs defaultValue="audio-upload">
+                <Tabs defaultValue="simple-audio-upload">
                   <TabsList className="w-full">
+                    <TabsTrigger value="simple-audio-upload" className="flex-1">
+                      Simple Upload
+                    </TabsTrigger>
                     <TabsTrigger value="audio-upload" className="flex-1">
-                      Upload Audio
+                      Standard Upload
                     </TabsTrigger>
                     <TabsTrigger value="large-audio-upload" className="flex-1">
                       Large Files
-                    </TabsTrigger>
-                    <TabsTrigger value="simple-audio-upload" className="flex-1">
-                      Simple Upload
                     </TabsTrigger>
                     <TabsTrigger value="video-upload" className="flex-1">
                       Upload Video
                     </TabsTrigger>
                   </TabsList>
+
+                  <TabsContent value="simple-audio-upload" className="mt-6">
+                    <SimpleAudioUploadForm onSuccess={fetchContent} />
+                  </TabsContent>
 
                   <TabsContent value="audio-upload" className="mt-6">
                     <AudioUploadForm onSuccess={fetchContent} />
@@ -759,10 +750,6 @@ export default function AdminDashboard() {
 
                   <TabsContent value="large-audio-upload" className="mt-6">
                     <LargeFileUploadForm onSuccess={fetchContent} />
-                  </TabsContent>
-
-                  <TabsContent value="simple-audio-upload" className="mt-6">
-                    <SimpleAudioUploadForm onSuccess={fetchContent} />
                   </TabsContent>
 
                   <TabsContent value="video-upload" className="mt-6">
@@ -782,43 +769,25 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Audio Upload Dialog */}
-      <Dialog open={showAudioUploadDialog} onOpenChange={setShowAudioUploadDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Upload Audio</DialogTitle>
-          </DialogHeader>
-          <AudioUploadForm onSuccess={handleAudioUploadSuccess} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Video Upload Dialog */}
-      <Dialog open={showVideoUploadDialog} onOpenChange={setShowVideoUploadDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Upload Video</DialogTitle>
-          </DialogHeader>
-          <VideoUploadForm onSuccess={handleVideoUploadSuccess} />
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <p>Are you sure you want to delete "{itemToDelete?.item.title}"? This action cannot be undone.</p>
-          <DialogFooter className="flex space-x-2 justify-end">
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background border border-gold-500/20 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2">Confirm Deletion</h3>
+            <p className="mb-4">
+              Are you sure you want to delete "{itemToDelete?.item.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminAuthCheck>
   )
 }
