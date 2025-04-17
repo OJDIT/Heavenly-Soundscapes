@@ -3,119 +3,61 @@ import { createServerSupabaseClient } from "@/lib/supabase"
 
 export async function GET(request: Request) {
   try {
+    // Get the bucket parameter from the URL
     const { searchParams } = new URL(request.url)
-    const specificBucket = searchParams.get("bucket")
+    const bucket = searchParams.get("bucket")
 
+    if (!bucket) {
+      return NextResponse.json({ error: "Missing bucket parameter", success: false }, { status: 400 })
+    }
+
+    // Get the Supabase client with service role
     const supabase = createServerSupabaseClient()
 
     if (!supabase) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Supabase client could not be initialized. Check your environment variables.",
-        },
-        { status: 500 },
-      )
+      return NextResponse.json({ error: "Failed to initialize Supabase client", success: false }, { status: 500 })
     }
 
-    // Check if buckets exist, create them if they don't
-    const buckets = specificBucket ? [specificBucket] : ["audio-files", "video-files"]
-    const results = []
+    // Check if the bucket exists
+    try {
+      const { data: bucketData, error: bucketError } = await supabase.storage.getBucket(bucket)
 
-    for (const bucket of buckets) {
-      try {
-        // Check if bucket exists
-        const { data: existingBucket, error: getBucketError } = await supabase.storage.getBucket(bucket)
-
-        if (getBucketError) {
-          if (getBucketError.message.includes("does not exist") || getBucketError.message.includes("not found")) {
-            console.log(`Bucket ${bucket} does not exist, creating it...`)
-
-            // Create the bucket
-            const { data, error } = await supabase.storage.createBucket(bucket, {
-              public: true,
-              fileSizeLimit: 50 * 1024 * 1024, // 50MB
-            })
-
-            if (error) {
-              console.error(`Error creating bucket ${bucket}:`, error)
-              results.push({ bucket, status: "error", error: error.message })
-            } else {
-              console.log(`Bucket ${bucket} created successfully`)
-
-              // Update bucket to be public
-              const { error: updateError } = await supabase.storage.updateBucket(bucket, {
-                public: true,
-              })
-
-              if (updateError) {
-                console.warn(`Warning: Could not make bucket ${bucket} public:`, updateError)
-              }
-
-              // Set public access policy for the bucket
-              try {
-                // Add a policy to allow public access to all files
-                const { error: policyError } = await supabase.storage.from(bucket).createSignedUrl("test.txt", 60)
-                if (policyError && !policyError.message.includes("not found")) {
-                  console.warn(`Warning: Could not test bucket ${bucket} access:`, policyError)
-                }
-              } catch (policyError) {
-                console.warn(`Warning: Error testing bucket ${bucket} access:`, policyError)
-              }
-
-              results.push({ bucket, status: "created", data })
-            }
-          } else {
-            console.error(`Error checking bucket ${bucket}:`, getBucketError)
-            results.push({ bucket, status: "error", error: getBucketError.message })
-          }
-        } else {
-          console.log(`Bucket ${bucket} already exists`)
-
-          // Ensure bucket is public
-          const { error: updateError } = await supabase.storage.updateBucket(bucket, {
-            public: true,
+      if (bucketError) {
+        // Bucket doesn't exist, create it
+        if (bucketError.message.includes("does not exist") || bucketError.message.includes("not found")) {
+          const { error: createError } = await supabase.storage.createBucket(bucket, {
+            public: false, // Set to false for better security
+            fileSizeLimit: 50 * 1024 * 1024, // 50MB
           })
 
-          if (updateError) {
-            console.warn(`Warning: Could not update bucket ${bucket} to be public:`, updateError)
+          if (createError) {
+            console.error("Error creating bucket:", createError)
+            return NextResponse.json({ error: `Failed to create bucket: ${createError.message}`, success: false }, { status: 500 })
           }
 
-          results.push({ bucket, status: "exists", data: existingBucket })
+          // Bucket created successfully
+          return NextResponse.json({ message: `Bucket ${bucket} created successfully`, success: true })
+        } else {
+          // Other error occurred
+          console.error("Error checking bucket:", bucketError)
+          return NextResponse.json({ error: `Bucket error: ${bucketError.message}`, success: false }, { status: 500 })
         }
-      } catch (bucketError) {
-        console.error(`Error with bucket ${bucket}:`, bucketError)
-        results.push({ bucket, status: "error", error: bucketError.message })
       }
+
+      // Bucket already exists
+      return NextResponse.json({ message: `Bucket ${bucket} already exists`, success: true })
+    } catch (error) {
+      console.error("Error in init-storage API route:", error)
+      return NextResponse.json({ 
+        error: `Bucket operation failed: ${error instanceof Error ? error.message : "Unknown error"}`, 
+        success: false 
+      }, { status: 500 })
     }
-
-    // Check if any buckets were successfully created or exist
-    const successfulBuckets = results.filter((result) => result.status === "created" || result.status === "exists")
-
-    if (successfulBuckets.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Failed to initialize any storage buckets",
-          results,
-        },
-        { status: 500 },
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `Storage buckets initialized (${successfulBuckets.length}/${buckets.length} successful)`,
-      results,
-    })
   } catch (error) {
-    console.error("Error initializing storage buckets:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.error("Unexpected error in init-storage API route:", error)
+    return NextResponse.json({ 
+      error: `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`, 
+      success: false 
+    }, { status: 500 })
   }
 }

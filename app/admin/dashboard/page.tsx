@@ -119,59 +119,25 @@ export default function AdminDashboard() {
   const fetchContent = async () => {
     setIsLoading(true)
     setError(null)
-
+  
     try {
-      // First try to get content from localStorage
-      let audioData = []
-      let videoData = []
-
-      try {
-        const storedAudioContent = localStorage.getItem("audioContent")
-        if (storedAudioContent) {
-          audioData = JSON.parse(storedAudioContent)
-        }
-
-        const storedVideoContent = localStorage.getItem("videoContent")
-        if (storedVideoContent) {
-          videoData = JSON.parse(storedVideoContent)
-        }
-      } catch (storageError) {
-        console.error("Error accessing localStorage:", storageError)
+      // Fetch audio content from API
+      const audioResponse = await fetch("/api/content/audio")
+      if (!audioResponse.ok) {
+        const errorData = await audioResponse.json()
+        throw new Error(errorData.error || "Failed to fetch audio content")
       }
-
-      // If we have data in localStorage, use it
-      if (audioData.length > 0) {
-        setAudioContent(audioData)
-      } else {
-        // Otherwise try the API
-        try {
-          const audioResponse = await fetch("/api/content/audio")
-          if (audioResponse.ok) {
-            const data = await audioResponse.json()
-            if (data.success && data.data) {
-              setAudioContent(data.data)
-            }
-          }
-        } catch (apiError) {
-          console.error("Error fetching audio from API:", apiError)
-        }
+      const audioData = await audioResponse.json()
+      setAudioContent(audioData.data || [])
+  
+      // Fetch video content from API
+      const videoResponse = await fetch("/api/content/video")
+      if (!videoResponse.ok) {
+        const errorData = await videoResponse.json()
+        throw new Error(errorData.error || "Failed to fetch video content")
       }
-
-      if (videoData.length > 0) {
-        setVideoContent(videoData)
-      } else {
-        try {
-          const videoResponse = await fetch("/api/content/video")
-          if (videoResponse.ok) {
-            const data = await videoResponse.json()
-            if (data.success && data.data) {
-              setVideoContent(data.data)
-            }
-          }
-        } catch (apiError) {
-          console.error("Error fetching video from API:", apiError)
-        }
-      }
+      const videoData = await videoResponse.json()
+      setVideoContent(videoData.data || [])
     } catch (err) {
       console.error("Error fetching content:", err)
       setError("Failed to load content. Please try again.")
@@ -179,7 +145,7 @@ export default function AdminDashboard() {
       setIsLoading(false)
     }
   }
-
+  
   // Function to confirm deletion
   const confirmDelete = (item: any, type: "audio" | "video") => {
     setItemToDelete({ item, type })

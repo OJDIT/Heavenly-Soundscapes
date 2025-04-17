@@ -6,6 +6,8 @@ import { useState, useRef } from "react"
 import { Music, AlertCircle, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { uploadFileToSupabase, ensureBucketExists } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 export default function SimpleAudioUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [file, setFile] = useState<File | null>(null)
@@ -62,84 +64,84 @@ export default function SimpleAudioUploadForm({ onSuccess }: { onSuccess?: () =>
     setError(null)
 
     try {
-      // Create a data URL for the file (this will only work well for small files)
-      const reader = new FileReader()
-      reader.onload = async (event) => {
-        try {
-          const dataUrl = event.target?.result as string
+      const supabase = createServerSupabaseClient()
 
-          // Create a unique ID for the audio
-          const audioId = `audio-${Date.now()}`
-
-          // Create audio metadata
-          const newAudio = {
-            id: audioId,
-            title,
-            category,
-            description,
-            price: Number.parseFloat(price),
-            filename: file.name,
-            url: dataUrl,
-            size: file.size,
-            type: file.type,
-            duration: "3:45", // In a real app, you'd calculate this
-            dateAdded: new Date().toISOString(),
-          }
-
-          // Store in localStorage
-          try {
-            // Get existing audio content from localStorage or create empty array
-            let audioContent = []
-            const existingContent = localStorage.getItem("audioContent")
-            if (existingContent) {
-              audioContent = JSON.parse(existingContent)
-            }
-
-            // Add new audio to the content array
-            audioContent.push(newAudio)
-
-            // Save updated content to localStorage
-            localStorage.setItem("audioContent", JSON.stringify(audioContent))
-            console.log("Saved audio metadata to localStorage")
-
-            setUploadSuccess(true)
-
-            // Reset form after successful upload
-            setTimeout(() => {
-              setFile(null)
-              setPreview(null)
-              setTitle("")
-              setCategory("")
-              setDescription("")
-              setPrice("")
-              setUploadSuccess(false)
-              setIsUploading(false)
-              if (formRef.current) {
-                formRef.current.reset()
-              }
-              if (onSuccess) {
-                onSuccess()
-              }
-            }, 2000)
-          } catch (storageError) {
-            console.error("Failed to save to localStorage:", storageError)
-            throw new Error("Failed to save audio data")
-          }
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "An unknown error occurred")
-          setIsUploading(false)
-        }
+      if (!supabase) {
+        throw new Error("Supabase client could not be initialized")
       }
 
-      reader.onerror = () => {
-        setError("Failed to read file")
+      const { data: testData, error: testError } = await supabase.rpc('test_authorization_header')
+      console.log(`The user role is ${testData.role} and the user UUID is ${testData.sub}. `, testError)
+      
+      // Ensure the audio-files bucket exists
+      const bucketExists = await ensureBucketExists("audio-files")
+      if (!bucketExists) {
+        throw new Error("Failed to initialize storage bucket")
+      }
+
+      // Create a unique file path
+      const timestamp = Date.now()
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+      const filePath = `${timestamp}-${safeFileName}`
+
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await uploadFileToSupabase(
+        file,
+        "audio-files", 
+        filePath
+      )
+
+      if (uploadError || !uploadData) {
+        throw new Error(uploadError?.message || "File upload failed")
+      }
+
+      // Save metadata to Supabase database
+      const response = await fetch("/api/content/audio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          category,
+          description,
+          price: Number.parseFloat(price),
+          filename: file.name,
+          url: uploadData.url,
+          path: uploadData.path,
+          size: file.size,
+          type: file.type,
+          duration: "3:45", // In a real app, you'd calculate this
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to save audio metadata")
+      }
+
+      setUploadSuccess(true)
+
+      // Reset form after successful upload
+      setTimeout(() => {
+        setFile(null)
+        setPreview(null)
+        setTitle("")
+        setCategory("")
+        setDescription("")
+        setPrice("")
+        setUploadSuccess(false)
         setIsUploading(false)
-      }
-
-      reader.readAsDataURL(file)
+        if (formRef.current) {
+          formRef.current.reset()
+        }
+        if (onSuccess) {
+          onSuccess()
+        }
+      }, 2000)
     } catch (err) {
-      setIsUploading(false)
       setError(err instanceof Error ? err.message : "An unknown error occurred")
+      setIsUploading(false)
       console.error("Upload error:", err)
     }
   }
