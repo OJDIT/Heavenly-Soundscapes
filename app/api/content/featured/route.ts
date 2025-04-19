@@ -1,49 +1,37 @@
-import { NextResponse } from "next/server"
-
-// Helper function to get audio content directly
-async function getAudioContent() {
-  try {
-    // Try to get stored audio content from localStorage
-    let audioContent = []
-    try {
-      const storedContent = localStorage.getItem("audioContent")
-      if (storedContent) {
-        audioContent = JSON.parse(storedContent)
-        return audioContent
-      }
-    } catch (storageError) {
-      console.error("Error accessing localStorage:", storageError)
-    }
-
-    // If no localStorage content, return empty array
-    // In a real production environment, we would query the database directly here
-    return []
-  } catch (error) {
-    console.error("Error getting audio content:", error)
-    return []
-  }
-}
+import { NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    // Get audio content directly instead of making an API call
-    const audioContent = await getAudioContent()
+    const supabase = createServerSupabaseClient();
 
-    // Get up to 3 tracks from the store
-    const featuredTracks = audioContent.slice(0, 3)
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: "Failed to initialize Supabase client" },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: featuredTracks,
-    })
-  } catch (error) {
-    console.error("Error fetching featured tracks:", error)
+    const { data, error } = await supabase
+      .from("audio_items")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: data.slice(0, 3) });
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Failed to fetch featured tracks",
+        error: err instanceof Error ? err.message : "An unknown error occurred",
       },
-      { status: 500 },
-    )
+      { status: 500 }
+    );
   }
 }

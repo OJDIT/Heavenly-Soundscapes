@@ -1,92 +1,63 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Music, Headphones, SpeakerIcon as SpeakerWave, FileMusic, Film } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import AudioPlayer from "@/components/audio-player"
-import MusicMotionBackground from "@/components/music-motion-background"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  Music,
+  Headphones,
+  SpeakerIcon as SpeakerWave,
+  FileMusic,
+  Film,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import AudioPlayer from "@/components/audio-player";
+import MusicMotionBackground from "@/components/music-motion-background";
+import { toTitleCase } from "@/lib/helpers";
 
 interface AudioTrack {
-  id: string
-  title: string
-  url: string
-  category?: string
+  id: string;
+  title: string;
+  file_url: string;
+  category?: string;
 }
 
 export default function Home() {
-  const [featuredTracks, setFeaturedTracks] = useState<AudioTrack[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [featuredTracks, setFeaturedTracks] = useState<AudioTrack[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchFeaturedTracks() {
       try {
-        setIsLoading(true)
-
-        // First try to get audio content directly from localStorage
-        let tracks: AudioTrack[] = []
-        try {
-          const storedContent = localStorage.getItem("audioContent")
-          if (storedContent) {
-            const audioContent = JSON.parse(storedContent)
-            tracks = audioContent.slice(0, 3).map((track: any) => ({
-              id: track.id,
-              title: track.title,
-              url: track.url,
-              category: track.category,
-            }))
-          }
-        } catch (storageError) {
-          console.error("Error accessing localStorage:", storageError)
-        }
-
-        // If we got tracks from localStorage, use them
-        if (tracks.length > 0) {
-          setFeaturedTracks(tracks)
-          setIsLoading(false)
-          return
-        }
-
-        // Otherwise try the API
-        const response = await fetch("/api/content/featured")
+        setIsLoading(true);
+        const response = await fetch("/api/content/featured");
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch featured tracks: ${response.status}`)
+          throw new Error(
+            `Failed to fetch featured tracks: ${response.status}`
+          );
         }
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (data.success && data.data && data.data.length > 0) {
-          // Get up to 3 tracks from the store
-          const apiTracks = data.data.map((track: any) => ({
-            id: track.id,
-            title: track.title,
-            url: track.url,
-            category: track.category,
-          }))
-
-          setFeaturedTracks(apiTracks)
+        if (data?.success && data?.data?.length) {
+          setFeaturedTracks(data?.data);
         } else {
-          // If no tracks from API, set empty array
-          setFeaturedTracks([])
+          setFeaturedTracks([]);
         }
       } catch (err) {
-        console.error("Error fetching featured tracks:", err)
-        setError("Failed to load featured tracks")
-        // Set empty array when there's an error
-        setFeaturedTracks([])
+        setError("Failed to load featured tracks");
+        setFeaturedTracks([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchFeaturedTracks()
-  }, [])
+    fetchFeaturedTracks();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
       <section className="hero-gradient pt-32 pb-20 md:pt-40 md:pb-24 lg:pt-48 lg:pb-32 relative overflow-hidden">
         <div className="absolute inset-0 z-0 overflow-hidden">
           <MusicMotionBackground />
@@ -100,10 +71,15 @@ export default function Home() {
               Touching Lives Through <span className="gold-text">Sound</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground">
-              Professional faith-inspired music production that glorifies God and elevates the gospel.
+              Professional faith-inspired music production that glorifies God
+              and elevates the gospel.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button asChild size="lg" className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
+              <Button
+                asChild
+                size="lg"
+                className="bg-gold-500 hover:bg-gold-600 text-primary-foreground"
+              >
                 <Link href="/contact">Book a Session</Link>
               </Button>
               <Button
@@ -119,7 +95,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Audio Preview */}
       <section className="py-12 -mt-6 md:-mt-8 relative z-10">
         <div className="container max-w-3xl">
           <div className="border border-gold-500/20 bg-black/60 backdrop-blur-sm rounded-xl p-4 md:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
@@ -130,11 +105,15 @@ export default function Home() {
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-gold-500 border-r-transparent"></div>
-                <span className="ml-3 text-muted-foreground">Loading tracks...</span>
+                <span className="ml-3 text-muted-foreground">
+                  Loading tracks...
+                </span>
               </div>
             ) : featuredTracks.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">No tracks available yet.</p>
+                <p className="text-muted-foreground mb-4">
+                  No tracks available yet.
+                </p>
                 <Button asChild variant="outline" size="sm">
                   <Link href="/admin/dashboard?tab=upload">Upload Content</Link>
                 </Button>
@@ -142,12 +121,22 @@ export default function Home() {
             ) : (
               <div className="space-y-4">
                 {featuredTracks.map((track) => (
-                  <div key={track.id} className="border border-gold-500/10 bg-black/40 rounded-lg p-3">
+                  <div
+                    key={track.id}
+                    className="border border-gold-500/10 bg-black/40 rounded-lg p-3"
+                  >
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="text-sm font-medium">{track.title}</h4>
-                      {track.category && <span className="text-xs text-gold-400">{track.category}</span>}
+                      {track.category && (
+                        <span className="text-xs text-gold-400">
+                          {toTitleCase(track.category)}
+                        </span>
+                      )}
                     </div>
-                    <AudioPlayer audioUrl={track.url} title={track.title} />
+                    <AudioPlayer
+                      audioUrl={track.file_url}
+                      title={track.title}
+                    />
                   </div>
                 ))}
 
@@ -170,8 +159,8 @@ export default function Home() {
               Our <span className="gold-text">Services</span>
             </h2>
             <p className="text-muted-foreground">
-              We provide professional sound and media production services to help elevate your ministry and creative
-              projects.
+              We provide professional sound and media production services to
+              help elevate your ministry and creative projects.
             </p>
           </div>
 
@@ -204,12 +193,14 @@ export default function Home() {
               {
                 icon: <Music className="h-10 w-10 text-gold-500" />,
                 title: "Instrument Tracking",
-                description: "Remote recording of bass, drums, keys, guitar, and more for your music productions.",
+                description:
+                  "Remote recording of bass, drums, keys, guitar, and more for your music productions.",
               },
               {
                 icon: <Film className="h-10 w-10 text-gold-500" />,
                 title: "Video Services",
-                description: "Music video editing and visual content creation for your music and ministry needs.",
+                description:
+                  "Music video editing and visual content creation for your music and ministry needs.",
               },
             ].map((service, i) => (
               <div
@@ -221,7 +212,9 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-2">{service.title}</h3>
-                <p className="text-muted-foreground text-sm">{service.description}</p>
+                <p className="text-muted-foreground text-sm">
+                  {service.description}
+                </p>
                 <Button asChild variant="link" className="mt-4 px-0">
                   <Link href="/services">Learn More</Link>
                 </Button>
@@ -243,11 +236,15 @@ export default function Home() {
               Ready to <span className="gold-text">Elevate</span> Your Sound?
             </h2>
             <p className="text-muted-foreground">
-              Join the many worship artists, churches, and ministries that have found their perfect sound with Heavenly
-              Soundscapes.
+              Join the many worship artists, churches, and ministries that have
+              found their perfect sound with Heavenly Soundscapes.
             </p>
             <div className="pt-4">
-              <Button asChild size="lg" className="bg-gold-500 hover:bg-gold-600 text-primary-foreground">
+              <Button
+                asChild
+                size="lg"
+                className="bg-gold-500 hover:bg-gold-600 text-primary-foreground"
+              >
                 <Link href="/contact">Request a Quote</Link>
               </Button>
             </div>
@@ -255,5 +252,5 @@ export default function Home() {
         </div>
       </section>
     </div>
-  )
+  );
 }

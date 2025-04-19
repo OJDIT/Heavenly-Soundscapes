@@ -1,58 +1,48 @@
-import { NextResponse } from "next/server"
-import { handleUpload } from "@vercel/blob/client"
+import { createServerSupabaseClient } from "@/lib/supabase";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
+  const body = (await request.json()) as HandleUploadBody;
+  const supabase = createServerSupabaseClient();
+
+  if (!supabase) {
+    return NextResponse.json(
+      { success: false, error: "Failed to initialize Supabase client" },
+      { status: 500 }
+    );
+  }
+
   try {
-    const response = await handleUpload({
+    const jsonResponse = await handleUpload({
+      body,
       request,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN!,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        // This is where you can validate the user is authorized, pathname,
-        // and any other upload metadata
-        console.log("Generating token for path:", pathname)
-
-        // Determine content type based on pathname
-        const isVideo = pathname.startsWith("videos/")
-        const isAudio = pathname.startsWith("audio/")
-        const isThumbnail = pathname.startsWith("thumbnails/")
+        const isAudio = pathname.startsWith("audio/");
+        const isVideo = pathname.startsWith("videos/");
+        const isThumb = pathname.startsWith("thumbnails/");
 
         return {
-          allowedContentTypes: isVideo ? ["video/*"] : isAudio ? ["audio/*"] : isThumbnail ? ["image/*"] : ["*/*"],
-          maximumSizeInBytes: 500 * 1024 * 1024, // 500 MB max size
-          tokenPayload: clientPayload, // Pass through the original payload
-        }
+          allowedContentTypes: isVideo
+            ? ["video/*"]
+            : isAudio
+            ? ["audio/*"]
+            : isThumb
+            ? ["image/*"]
+            : ["*/*"],
+          maximumSizeInBytes: 500 * 1024 * 1024,
+          tokenPayload: clientPayload,
+        };
       },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // This is called after upload is complete
-        console.log("Upload completed:", blob.url, "Path:", blob.pathname)
+      onUploadCompleted: async () => {},
+    });
 
-        try {
-          // Parse the metadata from tokenPayload
-          let metadata = {}
-          if (tokenPayload) {
-            try {
-              metadata = JSON.parse(tokenPayload)
-              console.log("Parsed metadata:", metadata)
-            } catch (error) {
-              console.error("Error parsing token payload:", error)
-            }
-          }
-
-          // Determine content type based on pathname
-          const isVideo = blob.pathname.startsWith("videos/")
-          const isAudio = blob.pathname.startsWith("audio/")
-          const contentType = isVideo ? "video" : isAudio ? "audio" : "file"
-
-          console.log(`Successfully uploaded ${contentType} to Blob storage`)
-        } catch (error) {
-          console.error("Error in onUploadCompleted:", error)
-        }
-      },
-    })
-
-    return response
+    return NextResponse.json(jsonResponse);
   } catch (error) {
-    console.error("Error in upload token handler:", error)
-    return NextResponse.json({ error: "Error generating upload token" }, { status: 500 })
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
