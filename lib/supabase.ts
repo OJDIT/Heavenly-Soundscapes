@@ -51,40 +51,38 @@ export const uploadFileToSupabase = async (
   error: Error | null;
 }> => {
   try {
+    const MAX = 50 * 1024 * 1024;
+
+    if (file.size > MAX) {
+      throw new Error(
+        "File size exceeds the 50 MB limit. Please upload a smaller file."
+      );
+    }
+
     const supabase = createServerSupabaseClient();
 
     if (!supabase) {
       throw new Error("Supabase client could not be initialized");
     }
 
-    if (file.size > 50 * 1024 * 1024) {
-      throw new Error(
-        "File size exceeds the 50MB limit. Please upload a smaller file."
-      );
+    const safePath = makeSafeKey(path);
+    const { data: uploadData, error: uploadErr } = await supabase.storage
+      .from(bucket)
+      .upload(safePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadErr || !uploadData) {
+      throw uploadErr ?? new Error("Supabase upload failed");
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("bucket", bucket);
-    formData.append("path", makeSafeKey(path));
-
-    const response = await fetch("/api/upload/supabase", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Upload failed");
-    }
-
-    const data = await response.json();
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(bucket).getPublicUrl(uploadData.path);
 
     return {
-      data: {
-        path: data.path,
-        url: data.url,
-      },
+      data: { path: uploadData.path, url: publicUrl },
       error: null,
     };
   } catch (error) {
