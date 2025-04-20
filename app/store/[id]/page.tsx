@@ -53,7 +53,7 @@ export default function SoundPackDetailPage() {
               ],
               imageUrl:
                 soundPack.thumbnailUrl ||
-                "/public/mic.jpg"
+                "/placeholder.svg?height=500&width=500",
               audioUrl: soundPack.file_url,
             });
           } else {
