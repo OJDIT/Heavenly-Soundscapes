@@ -20,6 +20,7 @@ export default function SoundPackDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [hasPurchased, setHasPurchased] = useState(false);
 
   useEffect(() => {
     async function fetchSoundPack() {
@@ -32,11 +33,9 @@ export default function SoundPackDetailPage() {
         const data = await response.json();
 
         if (data.success && data.data) {
-          // Find the specific sound pack by ID
           const soundPack = data.data.find((item: any) => item.id === id);
 
           if (soundPack) {
-            // Transform to match expected format
             setPack({
               id: soundPack.id,
               title: soundPack.title,
@@ -51,9 +50,7 @@ export default function SoundPackDetailPage() {
                 "Royalty-free for your projects",
                 "Instant download after purchase",
               ],
-              imageUrl:
-                soundPack.thumbnailUrl ||
-                "/placeholder.svg?height=500&width=500",
+              imageUrl: soundPack.thumbnailUrl || "/placeholder.svg?height=500&width=500",
               audioUrl: soundPack.file_url,
             });
           } else {
@@ -71,32 +68,33 @@ export default function SoundPackDetailPage() {
     fetchSoundPack();
   }, [id]);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("purchases");
+    if (stored) {
+      const purchases = JSON.parse(stored);
+      const isBought = purchases.some((p: any) => p.id === id);
+      setHasPurchased(isBought);
+    }
+  }, [id]);
+
   const handleDownload = () => {
-    // Create an anchor element and set the href to the audio URL
     const a = document.createElement("a");
     a.href = pack.audioUrl;
-    a.download = `${pack.title.replace(/\s+/g, "-").toLowerCase()}.wav`; // Set the download filename
+    a.download = `${pack.title.replace(/\s+/g, "-").toLowerCase()}.wav`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
-    // Show success message
     setDownloadSuccess(true);
-
-    // Hide success message after 5 seconds
-    setTimeout(() => {
-      setDownloadSuccess(false);
-    }, 5000);
+    setTimeout(() => setDownloadSuccess(false), 5000);
   };
 
   const handleBuyNow = async () => {
     if (!pack) return;
-
     setIsProcessing(true);
     setError(null);
 
     try {
-      // Call the server action
       const result = await createCheckoutSession({
         amount: pack.price,
         productName: pack.title,
@@ -104,7 +102,6 @@ export default function SoundPackDetailPage() {
       });
 
       if (result.success && result.url) {
-        // Navigate to the Stripe checkout URL
         window.location.href = result.url;
       } else {
         setError(result.error || "Failed to create checkout session");
@@ -121,9 +118,7 @@ export default function SoundPackDetailPage() {
     return (
       <div className="container py-6 md:py-12 pt-24 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-gold-500 border-r-transparent"></div>
-        <p className="mt-4 text-muted-foreground">
-          Loading sound pack details...
-        </p>
+        <p className="mt-4 text-muted-foreground">Loading sound pack details...</p>
       </div>
     );
   }
@@ -140,10 +135,7 @@ export default function SoundPackDetailPage() {
         <div className="bg-red-500/10 border border-red-500/50 text-red-500 rounded-md p-6 text-center">
           <h2 className="text-xl font-bold mb-2">Error</h2>
           <p>{error || "Sound pack not found"}</p>
-          <Button
-            asChild
-            className="mt-4 bg-gold-500 hover:bg-gold-600 text-primary-foreground"
-          >
+          <Button asChild className="mt-4 bg-gold-500 hover:bg-gold-600 text-primary-foreground">
             <Link href="/store">Return to Store</Link>
           </Button>
         </div>
@@ -175,9 +167,7 @@ export default function SoundPackDetailPage() {
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
             {pack.title.split(" ").map((word: string, i: number) =>
               i === 0 ? (
-                <span key={i} className="gold-text">
-                  {word}
-                </span>
+                <span key={i} className="gold-text">{word}</span>
               ) : (
                 ` ${word}`
               )
@@ -189,20 +179,12 @@ export default function SoundPackDetailPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 mb-4 md:mb-6">
             <div className="bg-muted p-2 md:p-3 rounded-lg text-center">
-              <div className="text-xs md:text-sm text-muted-foreground">
-                Category
-              </div>
-              <div className="font-medium text-sm md:text-base">
-                {toTitleCase(pack.category)}
-              </div>
+              <div className="text-xs md:text-sm text-muted-foreground">Category</div>
+              <div className="font-medium text-sm md:text-base">{toTitleCase(pack.category)}</div>
             </div>
             <div className="bg-muted p-2 md:p-3 rounded-lg text-center">
-              <div className="text-xs md:text-sm text-muted-foreground">
-                Format
-              </div>
-              <div className="font-medium text-sm md:text-base">
-                Digital Download
-              </div>
+              <div className="text-xs md:text-sm text-muted-foreground">Format</div>
+              <div className="font-medium text-sm md:text-base">Digital Download</div>
             </div>
           </div>
 
@@ -212,10 +194,7 @@ export default function SoundPackDetailPage() {
               <TabsTrigger value="features">Features</TabsTrigger>
               <TabsTrigger value="license">License</TabsTrigger>
             </TabsList>
-            <TabsContent
-              value="description"
-              className="mt-4 text-sm md:text-base"
-            >
+            <TabsContent value="description" className="mt-4 text-sm md:text-base">
               <p>{pack.description}</p>
             </TabsContent>
             <TabsContent value="features" className="mt-4">
@@ -229,15 +208,8 @@ export default function SoundPackDetailPage() {
               </ul>
             </TabsContent>
             <TabsContent value="license" className="mt-4 text-sm md:text-base">
-              <p>
-                This sound pack includes a standard license for both personal
-                and commercial use. You may use these sounds in your projects,
-                including songs, videos, and performances. Credit is appreciated
-                but not required.
-              </p>
-              <p className="mt-2">
-                For extended licensing options or questions, please contact us.
-              </p>
+              <p>This sound pack includes a standard license for both personal and commercial use. You may use these sounds in your projects, including songs, videos, and performances. Credit is appreciated but not required.</p>
+              <p className="mt-2">For extended licensing options or questions, please contact us.</p>
             </TabsContent>
           </Tabs>
 
@@ -264,20 +236,29 @@ export default function SoundPackDetailPage() {
                 <>Processing...</>
               ) : (
                 <>
-                  <ShoppingCart className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Buy
-                  Now
+                  <ShoppingCart className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Buy Now
                 </>
               )}
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full border-gold-500/70 bg-transparent hover:bg-gold-500/10 text-foreground shadow-[0_0_10px_rgba(247,196,20,0.1)]"
-              onClick={handleDownload}
-            >
-              <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Download
-              Sample
-            </Button>
+            {hasPurchased ? (
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full border-gold-500/70 bg-transparent hover:bg-gold-500/10 text-foreground shadow-[0_0_10px_rgba(247,196,20,0.1)]"
+                onClick={handleDownload}
+              >
+                <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Download Pack
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full border-muted text-muted-foreground cursor-not-allowed"
+                disabled
+              >
+                <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Purchase to Download
+              </Button>
+            )}
           </div>
         </div>
       </div>
