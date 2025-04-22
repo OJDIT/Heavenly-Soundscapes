@@ -75,7 +75,7 @@ export default function SoundPackDetailPage() {
     // Create an anchor element and set the href to the audio URL
     const a = document.createElement("a");
     a.href = pack.audioUrl;
-    a.download = `${pack.title.replace(/\s+/g, "-").toLowerCase()}.mp3`; // Set the download filename
+    a.download = `${pack.title.replace(/\s+/g, "-").toLowerCase()}.wav`; // Set the download filename
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -83,10 +83,10 @@ export default function SoundPackDetailPage() {
     // Show success message
     setDownloadSuccess(true);
 
-    // Hide success message after 3 seconds
+    // Hide success message after 5 seconds
     setTimeout(() => {
       setDownloadSuccess(false);
-    }, 3000);
+    }, 5000);
   };
 
   const handleBuyNow = async () => {
