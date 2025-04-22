@@ -46,7 +46,7 @@ export default function PaymentSuccessPage() {
                     setPurchasedItem({
                       id: item.id,
                       title: item.title,
-                      url: https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/audio-files//1745099767307-Psalm-144.wav
+                      url: https: "nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/audio-files/1745099767307-Psalm-144.wav"
                     })
                     // Store purchase in localStorage
                     try {
