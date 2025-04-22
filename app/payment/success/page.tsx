@@ -43,8 +43,11 @@ export default function PaymentSuccessPage() {
                 if (audioData.success && audioData.data) {
                   const item = audioData.data.find((item: any) => item.id === productId)
                   if (item) {
-                    setPurchasedItem(item)
-
+                    setPurchasedItem({
+                      id: item.id,
+                      title: item.title,
+                      url: https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/audio-files//1745099767307-Psalm-144.wav
+                    })
                     // Store purchase in localStorage
                     try {
                       const purchases = JSON.parse(localStorage.getItem("purchases") || "[]")
