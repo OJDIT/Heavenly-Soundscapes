@@ -73,7 +73,6 @@ export default function SoundPackDetailPage() {
 
   const handleDownload = () => {
     // Create an anchor element and set the href to the audio URL
-    const fullAudioUrl = `https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/${pack.audioUrl}`;
     const a = document.createElement("a");
     a.href = pack.audioUrl;
     a.download = `${pack.title.replace(/\s+/g, "-").toLowerCase()}.wav`; // Set the download filename
