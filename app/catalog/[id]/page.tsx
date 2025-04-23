@@ -23,7 +23,7 @@ const beat = {
     "Instant download after purchase",
     "Compatible with all major DAWs",
   ],
-  imageUrl: "/placeholder.svg?height=600&width=600",
+  imageUrl: "/sound.png?height=600&width=600",
   audioUrl: "#",
 }
 
@@ -39,7 +39,7 @@ export default function BeatDetailPage({ params }: { params: { id: string } }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
         <div>
           <div className="aspect-square relative rounded-lg overflow-hidden mb-4 md:mb-6">
-            <img src={beat.imageUrl || "/placeholder.svg"} alt={beat.title} className="object-cover w-full h-full" />
+            <img src={beat.imageUrl || "/sound.png"} alt={beat.title} className="object-cover w-full h-full" />
           </div>
           <AudioPlayer />
         </div>
