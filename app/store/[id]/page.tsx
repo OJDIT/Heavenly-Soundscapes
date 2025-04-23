@@ -155,7 +155,7 @@ export default function SoundPackDetailPage() {
         <div>
           <div className="aspect-square relative rounded-lg overflow-hidden mb-4 md:mb-6">
             <img
-              src={pack.imageUrl || "/sound.png"}
+              src={pack.imageUrl || "/mic.jpg"}
               alt={pack.title}
               className="object-cover w-full h-full"
             />
@@ -247,7 +247,7 @@ export default function SoundPackDetailPage() {
                 className="w-full border-gold-500/70 bg-transparent hover:bg-gold-500/10 text-foreground shadow-[0_0_10px_rgba(247,196,20,0.1)]"
                 onClick={handleDownload}
               >
-                <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Download Pack
+                <Download className="mr-2 h-4 w-4 md:h-5 md:w-" /> Download Pack
               </Button>
             ) : (
               <Button
