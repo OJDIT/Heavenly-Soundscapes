@@ -120,7 +120,7 @@ export default function AdminSignIn() {
             <div className="text-center text-xs text-muted-foreground mt-4">
               <p>Default credentials:</p>
               <p>Email: admin@heavenlysoundscapes.com</p>
-              <p>Password: admin123</p>
+              <p>Password: </p>
             </div>
           </form>
         </div>
