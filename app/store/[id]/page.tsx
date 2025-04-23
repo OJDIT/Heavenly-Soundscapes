@@ -50,7 +50,7 @@ export default function SoundPackDetailPage() {
                 "Royalty-free for your projects",
                 "Instant download after purchase",
               ],
-              imageUrl: soundPack.thumbnailUrl || "/placeholder.svg?height=500&width=500",
+              imageUrl: soundPack.thumbnailUrl || "/mic.jpg?height=500&width=500",
               audioUrl: soundPack.file_url,
             });
           } else {
@@ -155,7 +155,7 @@ export default function SoundPackDetailPage() {
         <div>
           <div className="aspect-square relative rounded-lg overflow-hidden mb-4 md:mb-6">
             <img
-              src={pack.imageUrl || "/placeholder.svg"}
+              src={pack.imageUrl || "/mic.jpg"}
               alt={pack.title}
               className="object-cover w-full h-full"
             />
