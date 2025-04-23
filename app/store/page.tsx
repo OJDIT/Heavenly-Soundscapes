@@ -144,7 +144,7 @@ export default function StorePage() {
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <img
-                        src={pack.imageUrl || "/placeholder.svg"}
+                        src={pack.imageUrl || "/mic.jpg"}
                         alt={pack.title}
                         className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                       />
