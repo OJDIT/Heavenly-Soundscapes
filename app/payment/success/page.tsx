@@ -127,6 +127,25 @@ export default function PaymentSuccessPage() {
                 </div>
               )}
 
+              const handleDownload = () => {
+                // Create an anchor element and set the href to the audio URL
+                const fullAudioUrl = `https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/${pack.audioUrl}`;
+                const a = document.createElement("a");
+                a.href = pack.audioUrl;
+                a.download = `${pack.title.replace(/\s+/g, "-").toLowerCase()}.wav`; // Set the download filename
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Show success message
+                setDownloadSuccess(true);
+
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                  setDownloadSuccess(false);
+                }, 5000);
+              };
+
               {purchasedItem && (
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
                   <h2 className="font-semibold text-green-400 mb-2">Your Purchase</h2>
