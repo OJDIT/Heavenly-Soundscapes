@@ -245,7 +245,7 @@ export default function SoundPackDetailPage() {
                 size="lg"
                 variant="outline"
                 className="w-full border-gold-500/70 bg-transparent hover:bg-gold-500/10 text-foreground shadow-[0_0_10px_rgba(247,196,20,0.1)]"
-                onClick={handleClick} disabled={true}
+                onClick={handleDownload} disabled={true}
               >
                 <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Download Pack
               </Button>
