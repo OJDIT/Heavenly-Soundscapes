@@ -50,7 +50,7 @@ export default function SoundPackDetailPage() {
                 "Royalty-free for your projects",
                 "Instant download after purchase",
               ],
-              imageUrl: soundPack.thumbnailUrl || "/sound.png?height=500&width=500",
+              imageUrl: soundPack.thumbnailUrl || "/Sound.png",
               audioUrl: soundPack.file_url,
             });
           } else {
