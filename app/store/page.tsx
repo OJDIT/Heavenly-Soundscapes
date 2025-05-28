@@ -38,7 +38,7 @@ export default function StorePage() {
             price: item.price,
             category: item.category || "Custom Sounds",
             imageUrl:
-              item.thumbnailUrl || "/public/Sound.png",
+              item.thumbnailUrl || "/Sound.png",
             audioUrl: item.file_url,
             features: [
               "High quality audio",
@@ -144,7 +144,7 @@ export default function StorePage() {
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <img
-                        src={pack.imageUrl || "/public/Sound.png"}
+                        src={pack.imageUrl || "/Sound.png"}
                         alt={pack.title}
                         className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                       />

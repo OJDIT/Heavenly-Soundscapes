@@ -61,10 +61,10 @@ export default function ContactPage() {
                     <Calendar className="h-5 w-5 text-gold-500" />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Book a Call</h3>
+                    <h3 className="font-medium mb-1">Call Us</h3>
                     <div className="mt-2">
                       <Button asChild variant="outline" className="w-full md:w-auto">
-                        <Link href="#">Schedule via Calendly</Link>
+                        <Link href="tel:08112036460">Call ***********</Link>
                       </Button>
                     </div>
                   </div>
