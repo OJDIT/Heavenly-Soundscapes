@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Mail, MapPin, Calendar } from "lucide-react"
+import { Mail, MapPin, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -58,7 +58,7 @@ export default function ContactPage() {
 
                 <div className="flex items-start gap-4">
                   <div className="h-10 w-10 rounded-full bg-gold-500/10 flex items-center justify-center flex-shrink-0">
-                    <Calendar className="h-5 w-5 text-gold-500" />
+                    <Phone className="h-5 w-5 text-gold-500" />
                   </div>
                   <div>
                     <h3 className="font-medium mb-1">Call Us</h3>
