@@ -224,6 +224,17 @@ export default function Home() {
         </div>
       </section>
 
+            {/* Testimonials Section */}
+      <section className="py-16 md:py-24 bg-black relative">
+        <div className="container max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-playfair font-bold mb-8">
+            What Our <span className="gold-text">Clients Say</span>
+          </h2>
+          <TestimonialSlider />
+        </div>
+      </section>
+
+
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-black relative">
         <div className="absolute inset-0 bg-gradient-radial from-gold-900/10 to-transparent opacity-60"></div>

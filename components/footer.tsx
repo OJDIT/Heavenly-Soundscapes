@@ -82,7 +82,7 @@ export default function Footer() {
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
               </a>
-              <a href="#" className="hover:text-gold-400 transition-colors">
+              <a href="https://www.youtube.com/@benamobeda" className="hover:text-gold-400 transition-colors">
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
               </a>
