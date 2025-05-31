@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import AudioPlayer from "@/components/audio-player";
 import MusicMotionBackground from "@/components/music-motion-background";
 import { toTitleCase } from "@/lib/helpers";
+import TestimonialSlider from "@/components/testimonial-slider";
 
 interface AudioTrack {
   id: string;

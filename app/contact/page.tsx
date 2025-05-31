@@ -64,7 +64,7 @@ export default function ContactPage() {
                     <h3 className="font-medium mb-1">Call Us</h3>
                     <div className="mt-2">
                       <Button asChild variant="outline" className="w-full md:w-auto">
-                        <Link href="tel:08112036460">Call ***********</Link>
+                        <Link href="tel:02477360035">Call 02477360035</Link>
                       </Button>
                     </div>
                   </div>
