@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 export default function ServicesPage() {
   const services = [
     {
-      icon: <Music className="h-18 w-18 text-gold-500" />,
+      icon: <Music className="h-20 w-20 text-gold-500" />,
       title: "Music Production",
       description:
         "Custom track creation, beat production, and live arrangement tailored to your unique sound and vision. We specialize in faith-inspired music that touches hearts and glorifies God.",
@@ -19,7 +19,7 @@ export default function ServicesPage() {
       cta: "Request Music Production",
     },
     {
-      icon: <Headphones className="h-19 w-19 text-gold-500" />,
+      icon: <Headphones className="h-24 w-24 text-gold-500" />,
       title: "Mixing & Mastering",
       description:
         "Professional polish for your tracks with attention to detail that brings out the best in your music. Our mixing and mastering services ensure your sound reaches its full potential.",
@@ -33,7 +33,7 @@ export default function ServicesPage() {
       cta: "Request Mixing & Mastering",
     },
     {
-      icon: <SpeakerWave className="h-15 w-15 text-gold-500" />,
+      icon: <SpeakerWave className="h-24 w-24 text-gold-500" />,
       title: "Church Sound Design",
       description:
         "Specialized audio solutions created specifically for worship environments. Enhance your church services with professional sound design that supports your worship experience.",
