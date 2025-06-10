@@ -61,7 +61,17 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <section className="hero-gradient pt-32 pb-20 md:pt-40 md:pb-24 lg:pt-48 lg:pb-32 relative overflow-hidden">
         <div className="absolute inset-0 z-0 overflow-hidden">
-          <MusicMotionBackground />
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-0"
+            >
+            <source src="/public/WhatsApp Video 2025-06-02 at 3.55.28 PM.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+
           <div className="absolute left-0 right-0 top-0 h-px bg-gold-gradient opacity-30"></div>
           <div className="absolute left-0 right-0 bottom-0 h-px bg-gold-gradient opacity-30"></div>
         </div>
