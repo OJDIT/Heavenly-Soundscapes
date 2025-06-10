@@ -178,13 +178,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[
               {
-                icon: <Music className="h-10 w-10 text-gold-500" />,
+                icon: <Music className="h-24 w-24 text-gold-500" />,
                 title: "Music Production",
                 description:
                   "Custom track creation, beat production, and live arrangement with a faith-inspired approach.",
               },
               {
-                icon: <Headphones className="h-10 w-10 text-gold-500" />,
+                icon: <Headphones className="h-20 w-20 text-gold-500" />,
                 title: "Mixing & Mastering",
                 description:
                   "Professional polish for your tracks with online delivery and flexibility across all genres.",
