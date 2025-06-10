@@ -218,7 +218,7 @@ export default function Home() {
                 key={i}
                 className="border border-gold-500/10 bg-secondary/30 rounded-lg p-6 hover:border-gold-500/30 transition-all group"
               >
-                <div className="mb-4 relative">
+                <div className="mb-4 relative flex items-center justify-center">
                   {service.icon}
                   <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
