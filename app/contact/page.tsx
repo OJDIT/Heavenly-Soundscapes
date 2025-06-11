@@ -23,7 +23,7 @@ export default function ContactPage() {
       `Name: ${name}\nEmail: ${email}\nService: ${service}\n\nMessage:\n${message}`
     );
 
-    window.location.href = `mailto:ojdaniel9806@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:contact@heavenlysoundscape.com?subject=${subject}&body=${body}`;
   }, []);
 
   return (
