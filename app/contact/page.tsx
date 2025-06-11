@@ -1,11 +1,31 @@
-import Link from "next/link"
-import { Mail, MapPin, Phone } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+"use client";
+
+import Link from "next/link";
+import { useCallback } from "react";
+import { Mail, MapPin, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function ContactPage() {
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const name = form.name.value;
+    const email = form.email.value;
+    const service = form.service.value;
+    const message = form.message.value;
+
+    const subject = encodeURIComponent(`Service Inquiry: ${service || "General"}`);
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nService: ${service}\n\nMessage:\n${message}`
+    );
+
+    window.location.href = `mailto:ojdaniel9806@gmail.com?subject=${subject}&body=${body}`;
+  }, []);
+
   return (
     <div className="pt-24 pb-16">
       <div className="container">
@@ -80,16 +100,16 @@ export default function ContactPage() {
           <div className="gold-border bg-black/40 rounded-lg p-6 md:p-8">
             <h2 className="text-xl md:text-2xl font-playfair mb-6">Send a Message</h2>
 
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="Your name" />
+                  <Input id="name" name="name" placeholder="Your name" />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="Your email" />
+                  <Input id="email" name="email" type="email" placeholder="Your email" />
                 </div>
               </div>
 
@@ -97,6 +117,7 @@ export default function ContactPage() {
                 <Label htmlFor="service">Service Interested In</Label>
                 <select
                   id="service"
+                  name="service"
                   className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Select a service</option>
@@ -112,7 +133,7 @@ export default function ContactPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="message">Message</Label>
-                <Textarea id="message" placeholder="Tell us about your project or inquiry" className="min-h-[150px]" />
+                <Textarea id="message" name="message" placeholder="Tell us about your project or inquiry" className="min-h-[150px]" />
               </div>
 
               <Button type="submit" className="w-full bg-gold-500 hover:bg-gold-600 text-primary-foreground">
@@ -127,5 +148,5 @@ export default function ContactPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
