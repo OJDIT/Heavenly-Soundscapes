@@ -162,6 +162,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Services Overview */}
       <section className="py-12 md:py-20">
         <div className="container">
           <div className="text-center max-w-2xl mx-auto mb-12">
@@ -177,72 +178,59 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[
               {
-                icon: Music,
-                iconSize: "h-40 w-40",
+                icon: <Music className="h-24 w-24 text-gold-500" />,
                 title: "Music Production",
                 description:
                   "Custom track creation, beat production, and live arrangement with a faith-inspired approach.",
               },
               {
-                icon: Headphones,
-                iconSize: "h-32 w-32",
+                icon: <Headphones className="h-20 w-20 text-gold-500" />,
                 title: "Mixing & Mastering",
                 description:
                   "Professional polish for your tracks with online delivery and flexibility across all genres.",
               },
               {
-                icon: SpeakerWave,
-                iconSize: "h-24 w-24",
+                icon: <SpeakerWave className="h-10 w-10 text-gold-500" />,
                 title: "Church Sound Design",
                 description:
                   "Specialized loops, worship stems, and transitions created for church services and worship.",
               },
               {
-                icon: FileMusic,
-                iconSize: "h-24 w-24",
+                icon: <FileMusic className="h-10 w-10 text-gold-500" />,
                 title: "Sound Packs",
                 description:
                   "Scripture-inspired sound collections, ambient nature sounds, and producer kits for your projects.",
               },
               {
-                icon: Music,
-                iconSize: "h-24 w-24",
+                icon: <Music className="h-10 w-10 text-gold-500" />,
                 title: "Instrument Tracking",
                 description:
                   "Remote recording of bass, drums, keys, guitar, and more for your music productions.",
               },
               {
-                icon: Film,
-                iconSize: "h-24 w-24",
+                icon: <Film className="h-10 w-10 text-gold-500" />,
                 title: "Video Services",
                 description:
                   "Music video editing and visual content creation for your music and ministry needs.",
               },
-            ].map((service, i) => {
-              const Icon = service.icon
-              return (
-                <div
-                  key={i}
-                  className="relative overflow-hidden border border-gold-500/10 bg-black/90 rounded-lg p-6 hover:border-gold-500/30 transition-all text-white"
-                >
-                  {/* Icon as background */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                    <Icon className={`${service.iconSize} text-gold-500`} />
-                  </div>
-
-                  {/* Foreground content */}
-                  <div className="relative z-10">
-                    <h3 className="text-xl font-bold mb-2">{service.title}</h3>
-                    <p className="text-muted-foreground text-sm text-white/80">
-                      {service.description}
-                    </p>
-                    <Button asChild variant="link" className="mt-4 px-0 text-gold-500">
-                      <Link href="/services">Learn More</Link>
-                    </Button>
-                  </div>
+            ].map((service, i) => (
+              <div
+                key={i}
+                className="border border-gold-500/10 bg-secondary/30 rounded-lg p-6 hover:border-gold-500/30 transition-all group"
+              >
+                <div className="mb-4 relative flex items-center justify-center">
+                  {service.icon}
+                  <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-              )
-            })}
+                <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+                <p className="text-muted-foreground text-sm">
+                  {service.description}
+                </p>
+                <Button asChild variant="link" className="mt-4 px-0">
+                  <Link href="/services">Learn More</Link>
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       </section>
