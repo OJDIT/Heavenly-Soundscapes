@@ -216,17 +216,14 @@ export default function Home() {
             ].map((service, i) => (
               <div
                 key={i}
-                className="border border-gold-500/10 bg-secondary/30 rounded-lg p-6 hover:border-gold-500/30 transition-all group"
+                className="border border-gold-500/10 bg-black/80 rounded-lg p-6 hover:border-gold-500/30 transition-all group text-center"
               >
-                <div className="mb-4 relative flex items-center justify-center">
+                <div className="mb-4 flex items-center justify-center">
                   {service.icon}
-                  <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">{service.title}</h3>
-                <p className="text-muted-foreground text-sm">
-                  {service.description}
-                </p>
-                <Button asChild variant="link" className="mt-4 px-0">
+                <h3 className="text-xl font-bold mb-2 text-white">{service.title}</h3>
+                <p className="text-muted-foreground text-sm">{service.description}</p>
+                <Button asChild variant="link" className="mt-4 px-0 text-gold-500">
                   <Link href="/services">Learn More</Link>
                 </Button>
               </div>
@@ -234,6 +231,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
 
             {/* Testimonials Section */}
       <section className="py-16 md:py-24 bg-black relative">
