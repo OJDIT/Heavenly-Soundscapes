@@ -178,7 +178,7 @@ export default function Home() {
             {[
               {
                 icon: Music,
-                iconSize: "h-40 w-40",
+                iconSize: "h-32 w-32",
                 title: "Music Production",
                 description:
                   "Custom track creation, beat production, and live arrangement with a faith-inspired approach.",
@@ -192,28 +192,28 @@ export default function Home() {
               },
               {
                 icon: SpeakerWave,
-                iconSize: "h-24 w-24",
+                iconSize: "h-32 w-32",
                 title: "Church Sound Design",
                 description:
                   "Specialized loops, worship stems, and transitions created for church services and worship.",
               },
               {
                 icon: FileMusic,
-                iconSize: "h-24 w-24",
+                iconSize: "h-32 w-32",
                 title: "Sound Packs",
                 description:
                   "Scripture-inspired sound collections, ambient nature sounds, and producer kits for your projects.",
               },
               {
                 icon: Music,
-                iconSize: "h-24 w-24",
+                iconSize: "h-32 w-32",
                 title: "Instrument Tracking",
                 description:
                   "Remote recording of bass, drums, keys, guitar, and more for your music productions.",
               },
               {
                 icon: Film,
-                iconSize: "h-24 w-24",
+                iconSize: "h-32 w-32",
                 title: "Video Services",
                 description:
                   "Music video editing and visual content creation for your music and ministry needs.",
