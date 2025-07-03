@@ -7,7 +7,7 @@ export default function FreeDownloadPage() {
       title: "Worshipful Presence",
       genre: "Worship",
       description: "A gentle ambient worship track with piano and soft pads.",
-      url: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/audio-files//1745099767307-Psalm-144.wav",
+      url: "https//nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/audio-files//1745099767307-Psalm-144.wav",
     },
     {
       title: "Glory Anthem",
