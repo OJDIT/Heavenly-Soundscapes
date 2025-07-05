@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 
 const navItems = [
-  { name: "Home", href: "/" },
+  { name: "Home", href: "/Home" },
   { name: "Services", href: "/services" },
-  { name: "Portfolio", href: "/portfolio" },
+  { name: "Free Sounds", href: "/portfolio" },
   { name: "Store", href: "/store" },
   { name: "Contact", href: "/contact" },
 ]

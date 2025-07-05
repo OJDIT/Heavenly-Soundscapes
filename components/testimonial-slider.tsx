@@ -6,19 +6,19 @@ import { User } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Grace A.",
+    name: "Joba O.",
     message:
-      "Heavenly Soundscapes took my worship album to another level. Their spiritual insight and technical skill are unmatched.",
+      "The sounds on my album were simply mind blowing. The quality of the production is outstanding.",
   },
   {
-    name: "Pastor John M.",
+    name: "Faith O.",
     message:
-      "Our church now sounds like heaven on earth. The loops and transitions make worship seamless and powerful!",
+      "Tracks from Heavenly Soundscapes sound so full and professional.",
   },
   {
-    name: "Kelvin O.",
+    name: "Sam U.",
     message:
-      "From mixing to video editing, they nailed every detail. I'm beyond impressed with the outcome.",
+      "Everyone I played my songs for really loved them and it's thanks to Heavenly Soundscapes.",
   },
 ];
 
