@@ -149,13 +149,13 @@ export default function AdminEditDialog({ item, contentType, onSuccess }: AdminE
               >
                 <option value="">Select category</option>
                 {contentType === "audio" ? (
-                  <>
+                  <>{/*
                     <option value="worship">Worship</option>
                     <option value="gospel">Gospel</option>
                     <option value="ambient">Ambient</option>
                     <option value="scripture">Scripture</option>
                     <option value="praise">Praise</option>
-                    <option value="contemporary">Contemporary</option>
+                    <option value="contemporary">Contemporary</option>*/}
                   </>
                 ) : (
                   <>

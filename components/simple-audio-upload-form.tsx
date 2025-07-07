@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useRef } from "react";
 import axios from "axios";
 import { Music, AlertCircle, Check } from "lucide-react";
@@ -27,6 +26,7 @@ export default function SimpleAudioUploadForm({
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isFree, setIsFree] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -93,6 +93,7 @@ export default function SimpleAudioUploadForm({
         file_type: file.type,
         duration,
         storage_type: file.size <= SUPABASE_MAX_SIZE ? "supabase" : "blob",
+        is_free: isFree,
       };
 
       const { data: resp } = await axios.post("/api/content/audio", metadata);
@@ -146,12 +147,12 @@ export default function SimpleAudioUploadForm({
             className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-          >
+          >{/*
             <option value="">Select category</option>
             <option value="worship">Worship</option>
             <option value="gospel">Gospel</option>
             <option value="ambient">Ambient</option>
-            <option value="scripture">Scripture</option>
+            <option value="scripture">Scripture</option>*/}
           </select>
         </div>
       </div>
@@ -177,6 +178,19 @@ export default function SimpleAudioUploadForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+      </div>
+
+      {/* Free sounds*/}
+      <div className="space-y-2">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isFree}
+            onChange={(e) => setIsFree(e.target.checked)}
+            className="h-4 w-4"
+          />
+          Free Sounds
+        </label>
       </div>
 
       <div className="space-y-2">
