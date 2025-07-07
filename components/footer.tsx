@@ -45,7 +45,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/portfolio" className="hover:text-gold-400 transition-colors">
-                  Portfolio
+                  Free Sounds
                 </Link>
               </li>
               <li>
@@ -77,11 +77,11 @@ export default function Footer() {
               >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
-              </a>
+              </a>{/*
               <a href="#" className="hover:text-gold-400 transition-colors">
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
-              </a>
+              </a>*/}
               <a href="https://www.youtube.com/@benamobeda" className="hover:text-gold-400 transition-colors">
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
