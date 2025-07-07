@@ -55,8 +55,8 @@ export default function SimpleAudioUploadForm({
 
     if (!file) return setError("Please select an audio file");
     if (!title.trim()) return setError("Please enter a title");
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      return setError("Please enter a valid price");
+    if (!isFree && (!price || isNaN(Number(price)) || Number(price) <= 0)) {
+      return setError("Please enter a valid price for paid audio");
     }
 
     setIsUploading(true);
@@ -85,7 +85,7 @@ export default function SimpleAudioUploadForm({
         title,
         category,
         description,
-        price: parseFloat(price),
+        price: isFree ? 0 : parseFloat(price),
         file_path: filename,
         file_name: file.name,
         file_url: uploadData.url,
@@ -167,6 +167,7 @@ export default function SimpleAudioUploadForm({
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="w-full"
+          disabled={isFree}
         />
       </div>
 
