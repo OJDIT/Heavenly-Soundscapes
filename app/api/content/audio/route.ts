@@ -1,43 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase";
 
-export async function GET() {
-  try {
-    const supabase = createServerSupabaseClient();
-
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: "Failed to initialize Supabase client" },
-        { status: 500 }
-      );
-    }
-
-    // Only return non-free sounds for the store
-    const { data, error } = await supabase
-      .from("audio_items")
-      .select("*")
-      .eq("is_free", false)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ success: true, data });
-  } catch (err) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: err instanceof Error ? err.message : "An unknown error occurred",
-      },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const supabase = createServerSupabaseClient();
@@ -50,8 +13,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, price, duration, file_url, is_free, category } = payload;
+    const {
+      title,
+      price,
+      duration,
+      file_url,
+      file_path,
+      file_name,
+      file_size,
+      file_type,
+      storage_type,
+      category,
+      description,
+      is_free,
+    } = payload;
 
+    // Basic validations
     if (!title || typeof title !== "string") {
       return NextResponse.json(
         { success: false, error: "Missing or invalid title" },
@@ -59,40 +36,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!file_url || !duration) {
+    if (!duration || !file_url || !file_name) {
       return NextResponse.json(
-        { success: false, error: "Upload data incomplete" },
+        { success: false, error: "Missing required audio file data" },
         { status: 400 }
       );
     }
 
-    // Validation: For paid items, price must be a positive number
-    if (!is_free && (typeof price !== "number" || price <= 0)) {
+    // Validate price for paid sounds
+    const isFree = is_free === true;
+    const normalizedPrice = isFree ? 0 : parseFloat(price);
+    if (!isFree && (!price || isNaN(normalizedPrice) || normalizedPrice <= 0)) {
       return NextResponse.json(
-        { success: false, error: "Price must be a positive number for paid items" },
+        { success: false, error: "Price must be a positive number" },
         { status: 400 }
       );
     }
 
-    // Normalize is_free and clean category if empty
-    const isFreeValue = typeof is_free === "boolean" ? is_free : false;
-    const cleanCategory = category?.trim() || null;
-
-    const finalPayload = {
-      ...payload,
-      price: isFreeValue ? 0 : price,
-      is_free: isFreeValue,
-      category: cleanCategory,
+    // Final object to insert
+    const insertPayload = {
+      title,
+      description: description || null,
+      category: category?.trim() || null,
+      price: normalizedPrice,
+      duration,
+      file_url,
+      file_path: file_path || null,
+      file_name,
+      file_size,
+      file_type,
+      storage_type,
+      is_free: isFree,
     };
 
     const { data, error } = await supabase
       .from("audio_items")
-      .insert(finalPayload)
+      .insert(insertPayload)
       .select()
       .single();
 
     if (error) {
-      console.error("Supabase insert error:", error);
+      console.error("Supabase insert error:", error.message);
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 500 }
@@ -101,12 +85,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    console.error("Unexpected error in API route:", err);
+    console.error("Unexpected error in POST /api/content/audio:", err);
+    const message = err instanceof Error ? err.message : JSON.stringify(err);
     return NextResponse.json(
-      {
-        success: false,
-        error: err instanceof Error ? err.message : "Unknown server error",
-      },
+      { success: false, error: message },
       { status: 500 }
     );
   }
