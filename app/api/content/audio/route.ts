@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, price, category, duration, file_url } = payload;
+    const { title, price, category, duration, file_url, is_free } = payload;
 
     if (!title || typeof title !== "string") {
       return NextResponse.json(
@@ -69,9 +69,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ✅ Normalize is_free
+    const isFreeValue = typeof is_free === "boolean" ? is_free : false;
+
+    // ✅ Final payload with is_free included
+    const finalPayload = {
+      ...payload,
+      is_free: isFreeValue,
+    };
+
+    // ✅ Use finalPayload instead of payload here
     const { data, error } = await supabase
       .from("audio_items")
-      .insert(payload)
+      .insert(finalPayload)
       .select()
       .single();
 

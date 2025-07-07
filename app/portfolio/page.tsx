@@ -1,27 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import AudioPlayer from "@/components/audio-player";
+import axios from "axios";
 
 export default function FreeDownloadPage() {
-  const freeSounds = [
-    {
-      title: "Worshipful Presence",
-      genre: "Worship",
-      description: "A gentle ambient worship track with piano and soft pads.",
-      url: "https//nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/audio-files//1745099767307-Psalm-144.wav",
-    },
-    {
-      title: "Glory Anthem",
-      genre: "Gospel",
-      description: "Upbeat gospel track with powerful choir and organ.",
-      url: "https://example.com/glory-anthem.mp3",
-    },
-    {
-      title: "Divine Peace",
-      genre: "Ambient",
-      description: "Meditative ambient soundscape with scripture inspiration.",
-      url: "https://example.com/divine-peace.mp3",
-    },
-  ];
+  const [freeSounds, setFreeSounds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFreeAudio = async () => {
+      try {
+        const response = await axios.get("/api/content/audio");
+        const allItems = response.data?.data || [];
+        const freeItems = allItems.filter((item: any) => item.is_free === true);
+        setFreeSounds(freeItems);
+      } catch (err) {
+        console.error("Error fetching audio:", err);
+        setError("Failed to load free sounds.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFreeAudio();
+  }, []);
 
   return (
     <div className="pt-24 pb-16">
@@ -35,28 +40,40 @@ export default function FreeDownloadPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {freeSounds.map((sound, index) => (
-            <div
-              key={index}
-              className="border border-gold-500/20 bg-black/40 rounded-lg p-4 hover:border-gold-500/40 transition-all"
-            >
-              <h3 className="text-lg font-semibold mb-1">{sound.title}</h3>
-              <div className="text-xs font-medium text-gold-400 mb-2">{sound.genre}</div>
-              <p className="text-sm text-muted-foreground mb-4">{sound.description}</p>
-
-              <AudioPlayer audioUrl={sound.url} title={sound.title} />
-
-              <a
-                href={sound.url}
-                download
-                className="mt-4 inline-block bg-gold-500 hover:bg-gold-600 text-black text-sm font-semibold px-4 py-2 rounded transition-all"
+        {loading ? (
+          <p className="text-center text-sm text-muted-foreground">Loading...</p>
+        ) : error ? (
+          <p className="text-center text-sm text-red-500">{error}</p>
+        ) : freeSounds.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground">No free sounds available yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {freeSounds.map((sound, index) => (
+              <div
+                key={index}
+                className="border border-gold-500/20 bg-black/40 rounded-lg p-4 hover:border-gold-500/40 transition-all"
               >
-                Download
-              </a>
-            </div>
-          ))}
-        </div>
+                <h3 className="text-lg font-semibold mb-1">{sound.title}</h3>
+                <div className="text-xs font-medium text-gold-400 mb-2">
+                  {sound.category || "Uncategorized"}
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {sound.description || "No description provided."}
+                </p>
+
+                <AudioPlayer audioUrl={sound.file_url} title={sound.title} />
+
+                <a
+                  href={sound.file_url}
+                  download
+                  className="mt-4 inline-block bg-gold-500 hover:bg-gold-600 text-black text-sm font-semibold px-4 py-2 rounded transition-all"
+                >
+                  Download
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

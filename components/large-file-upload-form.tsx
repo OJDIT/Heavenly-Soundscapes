@@ -293,12 +293,12 @@ export default function LargeFileUploadForm({
             className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-          >
+          >{/*
             <option value="">Select category</option>
             <option value="worship">Worship</option>
             <option value="gospel">Gospel</option>
             <option value="ambient">Ambient</option>
-            <option value="scripture">Scripture</option>
+            <option value="scripture">Scripture</option>*/}
           </select>
         </div>
       </div>
