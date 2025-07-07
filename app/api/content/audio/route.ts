@@ -48,7 +48,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, price, duration, file_url, is_free } = payload;
+    const {
+      title,
+      price,
+      duration,
+      file_url,
+      is_free
+    } = payload;
 
     if (!title || typeof title !== "string") {
       return NextResponse.json(
@@ -56,29 +62,30 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (typeof price !== "number" || price <= 0) {
+
+    if (!file_url || !duration) {
       return NextResponse.json(
-        { success: false, error: "Price must be a positive number" },
-        { status: 400 }
-      );
-    }
-    if (!file_url || !title || !price || !duration) {
-      return NextResponse.json(
-        { success: false, error: "Upload data incomplete" },
+        { success: false, error: "Missing audio file or duration" },
         { status: 400 }
       );
     }
 
-    // ✅ Normalize is_free
-    const isFreeValue = typeof is_free === "boolean" ? is_free : false;
+    const normalizedPrice = typeof price === "number" ? price : null;
+    const normalizedIsFree = typeof is_free === "boolean" ? is_free : false;
 
-    // ✅ Final payload with is_free included
+    if (!normalizedIsFree && (normalizedPrice === null || normalizedPrice <= 0)) {
+      return NextResponse.json(
+        { success: false, error: "Price must be a positive number for paid sounds" },
+        { status: 400 }
+      );
+    }
+
     const finalPayload = {
       ...payload,
-      is_free: isFreeValue,
+      price: normalizedIsFree ? 0 : normalizedPrice,
+      is_free: normalizedIsFree
     };
 
-    // ✅ Use finalPayload instead of payload here
     const { data, error } = await supabase
       .from("audio_items")
       .insert(finalPayload)
