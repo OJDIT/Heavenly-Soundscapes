@@ -12,9 +12,11 @@ export async function GET() {
       );
     }
 
+    // Only return non-free sounds for the store
     const { data, error } = await supabase
       .from("audio_items")
       .select("*")
+      .eq("is_free", false)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -48,13 +50,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const {
-      title,
-      price,
-      duration,
-      file_url,
-      is_free
-    } = payload;
+    const { title, price, duration, file_url, is_free, category } = payload;
 
     if (!title || typeof title !== "string") {
       return NextResponse.json(
@@ -65,25 +61,28 @@ export async function POST(req: NextRequest) {
 
     if (!file_url || !duration) {
       return NextResponse.json(
-        { success: false, error: "Missing audio file or duration" },
+        { success: false, error: "Upload data incomplete" },
         { status: 400 }
       );
     }
 
-    const normalizedPrice = typeof price === "number" ? price : null;
-    const normalizedIsFree = typeof is_free === "boolean" ? is_free : false;
-
-    if (!normalizedIsFree && (normalizedPrice === null || normalizedPrice <= 0)) {
+    // Validation: For paid items, price must be a positive number
+    if (!is_free && (typeof price !== "number" || price <= 0)) {
       return NextResponse.json(
-        { success: false, error: "Price must be a positive number for paid sounds" },
+        { success: false, error: "Price must be a positive number for paid items" },
         { status: 400 }
       );
     }
+
+    // Normalize is_free and clean category if empty
+    const isFreeValue = typeof is_free === "boolean" ? is_free : false;
+    const cleanCategory = category?.trim() || null;
 
     const finalPayload = {
       ...payload,
-      price: normalizedIsFree ? 0 : normalizedPrice,
-      is_free: normalizedIsFree
+      price: isFreeValue ? 0 : price,
+      is_free: isFreeValue,
+      category: cleanCategory,
     };
 
     const { data, error } = await supabase
