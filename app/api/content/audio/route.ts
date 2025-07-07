@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, price, category, duration, file_url, is_free } = payload;
+    const { title, price, duration, file_url, is_free } = payload;
 
     if (!title || typeof title !== "string") {
       return NextResponse.json(
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (!file_url || !title || !category || !price || !duration) {
+    if (!file_url || !title || !price || !duration) {
       return NextResponse.json(
         { success: false, error: "Upload data incomplete" },
         { status: 400 }
