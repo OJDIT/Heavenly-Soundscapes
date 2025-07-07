@@ -22,21 +22,23 @@ export default function StorePage() {
         const data = await response.json();
 
         if (data.success && data.data) {
-          const formattedData = data.data.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            description: item.description || "Professional gospel sound pack.",
-            price: item.price,
-            category: item.category || "",
-            imageUrl: item.thumbnailUrl || "/Sound.png",
-            audioUrl: item.file_url,
-            features: [
-              "High quality audio",
-              "Professionally mixed",
-              "Royalty-free for your projects",
-              "Instant download after purchase",
-            ],
-          }));
+          const formattedData = data.data
+            .filter((item: any) => !item.is_free) // 🟡 Exclude free sounds
+            .map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description || "Professional gospel sound pack.",
+              price: item.price,
+              category: item.category || "",
+              imageUrl: item.thumbnailUrl || "/Sound.png",
+              audioUrl: item.file_url,
+              features: [
+                "High quality audio",
+                "Professionally mixed",
+                "Royalty-free for your projects",
+                "Instant download after purchase",
+              ],
+            }));
 
           setSoundPacks(formattedData);
         }
