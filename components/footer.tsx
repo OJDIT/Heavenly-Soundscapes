@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { Instagram, Facebook, Youtube, Mail } from "lucide-react"
+import Link from "next/link";
+import { Instagram, Facebook, Youtube, Mail } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -66,30 +66,46 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-semibold text-gold-500 mb-3">Connect</h4>
-            <div className="flex gap-3">
-              <a
-                href="https://www.instagram.com/heavenlysoundscape?igsh=MXZmbTJocGVpZGY1ZA=="
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-gold-400 transition-colors"
-              >
-                <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
-              </a>{/*
-              <a href="#" className="hover:text-gold-400 transition-colors">
-                <Facebook className="h-5 w-5" />
-                <span className="sr-only">Facebook</span>
-              </a>*/}
-              <a href="https://www.youtube.com/@benamobeda" className="hover:text-gold-400 transition-colors">
-                <Youtube className="h-5 w-5" />
-                <span className="sr-only">YouTube</span>
-              </a>
-              <a href="mailto:contact@heavenlysoundscape.com" className="hover:text-gold-400 transition-colors">
-                <Mail className="h-5 w-5" />
-                <span className="sr-only">Email</span>
-              </a>
+          <div className="flex flex-col gap-4">
+            <div>
+              <h4 className="font-semibold text-gold-500 mb-3">Connect</h4>
+              <div className="flex gap-3">
+                <a
+                  href="https://www.instagram.com/heavenlysoundscape?igsh=MXZmbTJocGVpZGY1ZA=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gold-400 transition-colors"
+                >
+                  <Instagram className="h-5 w-5" />
+                  <span className="sr-only">Instagram</span>
+                </a>
+                <a
+                  href="https://www.youtube.com/@benamobeda"
+                  className="hover:text-gold-400 transition-colors"
+                >
+                  <Youtube className="h-5 w-5" />
+                  <span className="sr-only">YouTube</span>
+                </a>
+                <a
+                  href="mailto:contact@heavenlysoundscape.com"
+                  className="hover:text-gold-400 transition-colors"
+                >
+                  <Mail className="h-5 w-5" />
+                  <span className="sr-only">Email</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Regulatory Compliance Section */}
+            <div className="text-center mt-4">
+              <p className="text-xs text-muted-foreground mb-1">
+                REGULATORY & COMPLIANCE
+              </p>
+              <img
+                src="/ICO_Welsh_Logo_WhiteOnBlue.png"
+                alt="ICO Regulatory Compliance"
+                className="h-12 mx-auto"
+              />
             </div>
           </div>
         </div>
@@ -99,5 +115,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
