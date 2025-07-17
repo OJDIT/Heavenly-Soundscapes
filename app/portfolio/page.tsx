@@ -55,10 +55,10 @@ export default function FreeDownloadPage() {
               >
                 <h3 className="text-lg font-semibold mb-1">{sound.title}</h3>
                 <div className="text-xs font-medium text-gold-400 mb-2">
-                  {sound.category || "Uncategorized"}
+                  {sound.category}
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {sound.description || "No description provided."}
+                  {sound.description}
                 </p>
 
                 <AudioPlayer audioUrl={sound.file_url} title={sound.title} />
