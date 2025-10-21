@@ -18,7 +18,7 @@ export function ContactInfo() {
           </div>
           <div>
             <h3 className="font-semibold text-white mb-1">Email</h3>
-            <a href="mailto:contact@heavenlysoundscape.com" className="text-gray-400 hover:text-gold transition-colors">
+            <a href="mailto:benamobeda@heavenlysoundscape.com" className="text-gray-400 hover:text-gold transition-colors">
               contact@heavenlysoundscape.com
             </a>
           </div>
@@ -30,8 +30,8 @@ export function ContactInfo() {
           </div>
           <div>
             <h3 className="font-semibold text-white mb-1">Phone</h3>
-            <a href="tel:+15551234567" className="text-gray-400 hover:text-gold transition-colors">
-              (555) 123-4567
+            <a href="tel:+02477360035" className="text-gray-400 hover:text-gold transition-colors">
+              02477360035
             </a>
           </div>
         </div>
@@ -43,9 +43,9 @@ export function ContactInfo() {
           <div>
             <h3 className="font-semibold text-white mb-1">Location</h3>
             <p className="text-gray-400">
-              123 Studio Lane
-              <br />
-              Nashville, TN 37201
+              Greybox Self Storage 
+              25-27 Brindley Rd, Bayton industrial estate 
+              CV7 9EP
             </p>
           </div>
         </div>
