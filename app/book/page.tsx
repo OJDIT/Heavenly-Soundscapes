@@ -1,3 +1,5 @@
+"use client"
+
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { BookingForm } from "@/components/booking/booking-form"
@@ -25,8 +27,12 @@ export default function BookPage() {
 
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="font-serif text-5xl md:text-6xl font-bold text-gold mb-4 text-balance">Book <span className="gold-text">Your Session</span></h1>
-            <p className="text-lg text-gray-300 text-pretty">Fill out the form below to reserve your studio time</p>
+            <h1 className="font-serif text-5xl md:text-6xl font-bold text-gold mb-4 text-balance">
+              Book <span className="gold-text">Your Session</span>
+            </h1>
+            <p className="text-lg text-gray-300 text-pretty">
+              Fill out the form below to reserve your studio time
+            </p>
           </div>
 
           <BookingForm />
