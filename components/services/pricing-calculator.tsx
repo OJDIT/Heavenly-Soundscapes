@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useRouter } from "next/navigation"
-import { ShoppingCart, Info } from "lucide-react"
+import { ShoppingCart, Info, Loader2 } from "lucide-react" // ✅ added Loader2 here
 
 interface ServiceItem {
   id: string
@@ -128,6 +128,7 @@ interface SelectedService {
 export function PricingCalculator() {
   const router = useRouter()
   const [selectedServices, setSelectedServices] = useState<Record<string, SelectedService>>({})
+  const [isLoading, setIsLoading] = useState(false) // ✅ added loading state
 
   const handleServiceToggle = (categoryId: string, item: ServiceItem) => {
     const key = `${categoryId}-${item.id}`
@@ -174,9 +175,15 @@ export function PricingCalculator() {
 
   const deposit = useMemo(() => (total >= 200 ? total * 0.5 : total), [total])
 
-  const handleBookNow = () => {
+  // ✅ Updated handleBookNow with spinner animation
+  const handleBookNow = async () => {
+    if (isLoading) return
+    setIsLoading(true)
+
     const servicesParam = encodeURIComponent(JSON.stringify(selectedServices))
-    router.push(`/book?services=${servicesParam}`)
+    setTimeout(() => {
+      router.push(`/book?services=${servicesParam}`)
+    }, 1000)
   }
 
   return (
@@ -184,6 +191,7 @@ export function PricingCalculator() {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            {/* left side */}
             <Card className="border-border">
               <CardHeader>
                 <CardTitle className="text-2xl font-serif">Select Your Services</CardTitle>
@@ -364,45 +372,27 @@ export function PricingCalculator() {
                           <span className="text-primary">£{total.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>Required Deposit</span>
+                          <span>Deposit (50%)</span>
                           <span>£{deposit.toFixed(2)}</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
-                        <div className="flex items-start gap-2">
-                          <Info size={14} className="mt-0.5 flex-shrink-0" />
-                          <p>
-                            {total >= 200
-                              ? "50% deposit required to secure booking"
-                              : "Full payment required for bookings under £200"}
-                          </p>
                         </div>
                       </div>
 
                       <Button
                         onClick={handleBookNow}
-                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                        disabled={isLoading}
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2"
                       >
-                        Book Now
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          "Book Now"
+                        )}
                       </Button>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              {/* Fine Print */}
-              <Card className="mt-4 border-border">
-                <CardHeader>
-                  <CardTitle className="text-sm font-semibold">Booking Terms</CardTitle>
-                </CardHeader>
-                <CardContent className="text-xs text-muted-foreground space-y-2">
-                  <p>• 50% deposit required for bookings £200+</p>
-                  <p>• Full payment for bookings under £200</p>
-                  <p>• Cancellation 72+ hrs: full refund</p>
-                  <p>• Cancellation 24–72 hrs: 50% refund</p>
-                  <p>• Cancellation under 24 hrs: deposit forfeited</p>
-                  <p>• Late arrival charged from booked start time</p>
                 </CardContent>
               </Card>
             </div>
