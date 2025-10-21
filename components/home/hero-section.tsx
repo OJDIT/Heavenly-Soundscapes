@@ -28,7 +28,7 @@ export function HeroSection() {
           playsInline
           className="w-full h-full object-cover opacity-40"
         >
-          <source src="/studio-bg.mp4" type="video/mp4" />
+          <source src="/homepage-video.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-background" />
       </div>
