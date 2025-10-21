@@ -2,117 +2,98 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ShoppingBag, Menu, X, Music } from "lucide-react"
+import Image from "next/image"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { usePathname } from "next/navigation"
 
-const navItems = [
-  { name: "Home", href: "/" },
-  { name: "Services", href: "/services" },
-  { name: "Portfolio", href: "/portfolio" },
-  { name: "Store", href: "/store" },
-  { name: "Contact", href: "/contact" },
-]
+export function Header() {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const pathname = usePathname()
-
-  // Handle scroll effect for header
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
+      setIsScrolled(window.scrollY > 20)
     }
-
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [pathname])
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/services", label: "Services" },
+    { href: "/portfolio", label: "Portfolio" },
+    { href: "/contact", label: "Contact" },
+  ]
 
   return (
     <header
-      className={`fixed top-0 w-full z-40 transition-all duration-300 ${
-        scrolled ? "bg-background/95 backdrop-blur-md shadow-md" : "bg-background/80 backdrop-blur-md"
-      } border-b border-gold-500/20`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "bg-black/95 backdrop-blur-sm border-b border-gray-800" : "bg-transparent"
+      }`}
     >
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="relative flex items-center">
-            <Music className="h-7 w-7 text-gold-500" />
-            <div className="absolute inset-0 bg-gold-500/20 rounded-full blur-md animate-gold-pulse"></div>
-          </div>
-          <span className="font-playfair font-bold text-xl">
-            Heavenly <span className="gold-text">Soundscapes</span>
-          </span>
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
+          <Link href="/" className="flex items-center gap-3 group">
+            <Image
+              src="/images/logo.png"
+              alt="Heavenly Soundscapes"
+              width={50}
+              height={50}
+              className="brightness-0 invert group-hover:scale-110 transition-transform"
+            />
+            <span className="font-playfair font-bold text-xl">
+              Heavenly <span className="gold-text">Soundscapes Production</span>
+            </span>
+          </Link>
 
-        {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`text-sm font-medium transition-colors hover:text-gold-400 ${
-                pathname === item.href ? "text-gold-400" : ""
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-          <Button
-            asChild
-            variant="default"
-            size="sm"
-            className="ml-4 bg-gold-500 hover:bg-gold-600 text-primary-foreground"
-          >
-            <Link href="/store">
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              Shop
-            </Link>
-          </Button>
-        </nav>
-
-        {/* Mobile menu button */}
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-      </div>
-
-      {/* Mobile navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gold-500/20 bg-background/95 backdrop-blur-md">
-          <div className="container py-4 space-y-4">
-            {navItems.map((item) => (
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
               <Link
-                key={item.name}
-                href={item.href}
-                className={`block py-2 text-base font-medium transition-colors hover:text-gold-400 ${
-                  pathname === item.href ? "text-gold-400" : ""
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
+                key={link.href}
+                href={link.href}
+                className="text-gray-300 hover:text-gold transition-colors font-medium"
               >
-                {item.name}
+                {link.label}
               </Link>
             ))}
-            <Button
-              asChild
-              variant="default"
-              size="sm"
-              className="w-full mt-4 bg-gold-500 hover:bg-gold-600 text-primary-foreground"
-            >
-              <Link href="/store" onClick={() => setMobileMenuOpen(false)}>
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Shop Sound Packs
-              </Link>
+            <Button asChild className="bg-gold hover:bg-gold/90 text-black font-semibold">
+              <Link href="/book">Book Now</Link>
             </Button>
-          </div>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-gray-300 hover:text-gold transition-colors"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-      )}
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-800">
+            <nav className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-gray-300 hover:text-gold transition-colors font-medium py-2"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Button asChild className="bg-gold hover:bg-gold/90 text-black font-semibold w-full">
+                <Link href="/book" onClick={() => setIsMobileMenuOpen(false)}>
+                  Book Now
+                </Link>
+              </Button>
+            </nav>
+          </div>
+        )}
+      </div>
     </header>
   )
 }

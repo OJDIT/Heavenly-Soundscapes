@@ -1,32 +1,47 @@
 import type React from "react"
-import { Inter, Playfair_Display } from "next/font/google"
-
+import type { Metadata } from "next"
+import { Playfair_Display, Inter } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
+import { Suspense } from "react"
+import { ScrollToTop } from "@/components/scroll-to-top"
 import "./globals.css"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import { ThemeProvider } from "@/components/theme-provider"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+})
 
-export const metadata = {
-  title: "Heavenly Soundscapes",
-  description: "Touching lives through sound - Professional faith-inspired music production",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+export const metadata: Metadata = {
+  title: "Heavenly Soundscapes | Premium Recording Studio",
+  description:
+    "Where Sound Meets Perfection. Professional music recording, mixing, mastering, and production services. Book your session today.",
+  keywords: ["recording studio", "music production", "mixing", "mastering", "audio engineering", "podcast recording"],
+  openGraph: {
+    title: "Heavenly Soundscapes | Premium Recording Studio",
+    description: "Where Sound Meets Perfection. Professional music recording, mixing, and mastering services.",
+    type: "website",
+  },
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${playfair.variable} font-sans min-h-screen flex flex-col`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </ThemeProvider>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+        <ScrollToTop />
+        <Suspense fallback={null}>{children}</Suspense>
+        <Analytics />
       </body>
     </html>
   )

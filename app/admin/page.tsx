@@ -1,114 +1,67 @@
-"use client"
+import { redirect } from "next/navigation"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { BookingsTable } from "@/components/admin/bookings-table"
+import { StatsCards } from "@/components/admin/stats-cards"
 
-import type React from "react"
+async function getBookings() {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        },
+      },
+    },
+  )
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Lock, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-export default function AdminSignIn() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-
-    try {
-      // In a real app, this would be an API call to authenticate
-      // For demo purposes, we'll use a simple check
-      if (email === "admin@heavenlysoundscapes.com" && password === "admin123") {
-        // Set a flag in localStorage to simulate authentication
-        localStorage.setItem("isAuthenticated", "true")
-        router.push("/admin/dashboard")
-      } else {
-        setError("Invalid credentials. Please try again.")
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+  if (!user) {
+    redirect("/admin/login")
   }
 
+  const { data: bookings, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching bookings:", error)
+    return []
+  }
+
+  return bookings
+}
+
+export default async function AdminDashboard() {
+  const bookings = await getBookings()
+
   return (
-    <div className="pt-24 pb-16 min-h-screen flex items-center justify-center">
-      <div className="container max-w-md">
-        <div className="gold-border bg-black/60 rounded-lg p-6 md:p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl md:text-3xl font-playfair font-bold mb-2">
-              Admin <span className="gold-text">Access</span>
-            </h1>
-            <p className="text-muted-foreground">Sign in to manage your content</p>
-          </div>
+    <div className="min-h-screen bg-black">
+      <AdminHeader />
 
-          {error && (
-            <div className="bg-destructive/20 border border-destructive/50 text-destructive rounded-md p-3 mb-6 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@heavenlysoundscapes.com"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="password">Password</Label>
-                <a href="#" className="text-xs text-gold-400 hover:text-gold-300">
-                  Forgot password?
-                </a>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-gold-500 hover:bg-gold-600 text-primary-foreground"
-              disabled={isLoading}
-            >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-
-            <div className="text-center text-xs text-muted-foreground mt-4">
-              <p>Demo credentials:</p>
-              <p>Email: admin@heavenlysoundscapes.com</p>
-              <p>Password: admin123</p>
-            </div>
-          </form>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="font-serif text-4xl font-bold text-gold mb-2">Dashboard</h1>
+          <p className="text-gray-400">Manage your studio bookings and sessions</p>
         </div>
-      </div>
+
+        <StatsCards bookings={bookings} />
+
+        <div className="mt-8">
+          <BookingsTable bookings={bookings} />
+        </div>
+      </main>
     </div>
   )
 }
