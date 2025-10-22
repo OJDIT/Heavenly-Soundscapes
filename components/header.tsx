@@ -42,7 +42,7 @@ export function Header() {
               className="brightness-0 invert group-hover:scale-110 transition-transform"
             />
             <span className="font-playfair font-bold text-xl">
-              Heavenly <span className="gold-text">Soundscapes Production</span>
+              Heavenly <span className="gold-text">Soundscape Productions</span>
             </span>
           </Link>
 
