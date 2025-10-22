@@ -17,7 +17,7 @@ export function Footer() {
                 height={40}
                 className="brightness-0 invert"
               />
-              <span className="font-serif text-lg font-bold text-gold">Heavenly <span className="gold-text">Soundscapes Production</span></span>
+              <span className="font-serif text-lg font-bold text-gold">Heavenly <span className="gold-text">Soundscape Productions</span></span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               Where Sound Meets Perfection. Premium recording, mixing, and mastering services.
@@ -99,7 +99,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} Heavenly Soundscapes. All rights reserved.
+            © {new Date().getFullYear()} Heavenly Soundscape Productions. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-sm text-gray-400 hover:text-gold transition-colors">

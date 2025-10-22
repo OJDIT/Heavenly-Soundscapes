@@ -48,7 +48,7 @@ export function Navigation() {
               
             />
             <span className="font-playfair font-bold text-xl">
-              Heavenly <span className="gold-text">Soundscapes Production</span>
+              Heavenly <span className="gold-text">Soundscape Productions</span>
             </span>
           </Link>
 

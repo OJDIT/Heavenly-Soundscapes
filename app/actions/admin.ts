@@ -74,7 +74,7 @@ export async function updateBookingStatus(bookingId: string, newStatus: string) 
       await sendBookingStatusEmail({
         to: booking.customer_email,
         subject: "Your Session is Completed ✅",
-        message: `Hi ${booking.customer_name},\n\nYour session for ${booking.project_type} has been successfully completed.\n\nThank you for choosing Heavenly Soundscapes Production!\n\n— Heavenly Soundscapes`
+        message: `Hi ${booking.customer_name},\n\nYour session for ${booking.project_type} has been successfully completed.\n\nThank you for choosing Heavenly Soundscape Productions!\n\n— Heavenly Soundscapes`
       })
     }
   } catch (emailError) {
