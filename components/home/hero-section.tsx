@@ -28,10 +28,15 @@ export function HeroSection() {
           playsInline
           className="w-full h-full object-cover opacity-40"
         >
-          <source src="/homepage-video.mp4" type="video/mp4" />
+          {/* Replace the local file with an online video URL */}
+          <source src="https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/homepage-video.mp4" type="video/mp4" />
         </video>
+
+        {/* Overlay gradient for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-background" />
       </div>
+    
+
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 lg:px-8 text-center">

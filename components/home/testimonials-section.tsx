@@ -4,21 +4,21 @@ import { Star } from "lucide-react"
 const testimonials = [
   {
     name: "Joba O",
-    role: "Independent Artist",
+    role: "",
     content:
       "The sounds on my album were simply mind blowing. The quality of the production is outstanding.",
     rating: 5,
   },
   {
     name: "Faith O",
-    role: "Worship Leader",
+    role: "",
     content:
       "Tracks from Heavenly Soundscapes sound so full and professional.",
     rating: 5,
   },
   {
     name: "Sam U",
-    role: "Rock Band",
+    role: "",
     content:
       "Everyone I played my songs for really loved them and it's thanks to Heavenly Soundscapes.",
     rating: 5,
