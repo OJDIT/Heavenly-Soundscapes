@@ -2,19 +2,19 @@ import Image from "next/image"
 
 const portfolioItems = [
   {
-    title: "Worship Album - Grace Church",
+    title: "Worship Album ",
     category: "Worship Recording",
     description: "Full album production with 12 tracks, featuring live choir and orchestra arrangements.",
     image: "/images/studio-1.jpg",
   },
   {
-    title: "Podcast Series - Faith Talks",
+    title: "Podcast Series ",
     category: "Podcast Production",
     description: "Weekly podcast series with professional editing and sound design.",
     image: "/images/studio-2.jpg",
   },
   {
-    title: "Single Release - John Smith",
+    title: "Single Release",
     category: "Music Production",
     description: "Contemporary Christian single with full production and mixing.",
     image: "/images/studio-5.jpg",
@@ -26,7 +26,7 @@ const portfolioItems = [
     image: "/images/studio-6.jpg",
   },
   {
-    title: "EP Production - The Believers",
+    title: "EP Production",
     category: "Music Production",
     description: "5-track EP with complete production, mixing, and mastering.",
     image: "/images/studio-7.jpg",
