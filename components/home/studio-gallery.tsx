@@ -6,18 +6,18 @@ import { useRef, useState } from "react"
 import Image from "next/image"
 
 const studioImages = [
-  { src: "/images/studio-1.jpg", alt: "Recording session with vocalist" },
-  { src: "/images/studio-2.jpg", alt: "Artist at microphone" },
-  { src: "/images/studio-3.jpg", alt: "Professional mixing console" },
-  { src: "/images/studio-4.jpg", alt: "Studio collaboration" },
-  { src: "/images/studio-5.jpg", alt: "Audio engineering session" },
-  { src: "/images/studio-6.jpg", alt: "Sound engineer at work" },
-  { src: "/images/studio-7.jpg", alt: "Heavenly Soundscapes studio setup" },
-  { src: "/images/studio-8.jpg", alt: "Drum set with professional lighting" },
-  { src: "/images/studio-9.jpg", alt: "Blue-lit keyboard synthesizer" },
-  { src: "/images/studio-10.jpg", alt: "Studio lounge area" },
-  { src: "/images/studio-11.jpg", alt: "Professional keyboard and mixing equipment" },
-  { src: "/images/studio-12.jpg", alt: "Wide studio view with equipment" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMS5qcGciLCJpYXQiOjE3NzM1ODcyODIsImV4cCI6MTkzMTI2NzI4Mn0.N-0fSvahE7yTGPqbk_NUL4ocI_Qmoq2Yr-aMaGV5xPE", alt: "Recording session with vocalist" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMi5qcGciLCJpYXQiOjE3NzM1ODc0MDEsImV4cCI6MTkzMTI2NzQwMX0.yko2eKlxuxfzBuZmAi_Da7ddjCJhUodrn0XaOdMTG2M", alt: "Artist at microphone" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-3.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMy5qcGciLCJpYXQiOjE3NzM1ODgyNDcsImV4cCI6MTkzMTI2ODI0N30.9ny70TUZe1-pDA8_oazYQLNULg1seeIY3Rhfr8nvY90", alt: "Professional mixing console" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-4.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNC5qcGciLCJpYXQiOjE3NzM1ODgyNzcsImV4cCI6MTkzMTI2ODI3N30.anbd5jpR_V_SkazsyxhRx9xLd2y319RDj5Shm50Bwho", alt: "Studio collaboration" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-5.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNS5qcGciLCJpYXQiOjE3NzM1ODgzMDMsImV4cCI6MTkzMTI2ODMwM30.jftHrE6apOGxJ6z-G4-lp7baptpulf0F01C4qcH8sck", alt: "Audio engineering session" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNi5qcGciLCJpYXQiOjE3NzM1ODgzMzAsImV4cCI6MTkzMTI2ODMzMH0.92GA3eUPR83e-sRQ1Kz1Ju3ocVPT-9ABIO1Ov5YEj18", alt: "Sound engineer at work" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNy5qcGciLCJpYXQiOjE3NzM1ODgzNTUsImV4cCI6MTkzMTI2ODM1NX0.EFIO2b4QSPjkdk5mRctniaucstjGkJfiwJn9-l0FjVk", alt: "Heavenly Soundscapes studio setup" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-8.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tOC5qcGciLCJpYXQiOjE3NzM1ODgzODIsImV4cCI6MTkzMTI2ODM4Mn0.woheNwdqt-6dbpu9KuhzDObgQpskk4u7d_EYSGf1qsg", alt: "Drum set with professional lighting" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tOS5qcGciLCJpYXQiOjE3NzM1ODg0MjMsImV4cCI6MTkzMTI2ODQyM30.djQex4YYKguMA2ydgpeDX_FOFjwkhTXnwKq-qbgQMNs", alt: "Blue-lit keyboard synthesizer" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-10.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMTAuanBnIiwiaWF0IjoxNzczNTg4NDU1LCJleHAiOjE5MzEyNjg0NTV9.dwRT-HvhAMEZ-yrOzaTZMtA4v5VjNraLKOAFtSTtnlI", alt: "Studio lounge area" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-11.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMTEuanBnIiwiaWF0IjoxNzczNTg4NDgxLCJleHAiOjE5MzEyNjg0ODF9.rwMy2atrdzaBtzcsLkT9e0Ux41nmJD4Q4uY-q3ayNqA", alt: "Professional keyboard and mixing equipment" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-12.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMTIuanBnIiwiaWF0IjoxNzczNTg4NTA0LCJleHAiOjE5MzEyNjg1MDR9.q15bee74GFbIQJlu9K2_L15LhZ0nzeE3dnTJNE1VzT4", alt: "Wide studio view with equipment" },
 ]
 
 export function StudioGallery() {

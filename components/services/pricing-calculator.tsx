@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useRouter } from "next/navigation"
-import { ShoppingCart, Info, Loader2 } from "lucide-react" // ✅ added Loader2 here
+import { ShoppingCart, Loader2 } from "lucide-react"
 
 interface ServiceItem {
   id: string
@@ -18,6 +18,8 @@ interface ServiceItem {
   description?: string
   hasQuantity?: boolean
   hasHours?: boolean
+  guestTiers?: { label: string; price: number }[]  // ✅ new
+  extraMinuteRate?: number                          // ✅ new
 }
 
 interface ServiceCategory {
@@ -32,13 +34,13 @@ const servicesData: ServiceCategory[] = [
     title: "Studio Session Bookings",
     items: [
       { id: "hourly", name: "Hourly Rehearsal", price: 50, unit: "per hour", hasHours: true },
-      { id: "night", name: "Night Session (After 9PM)", price: 90, unit: "per hour", hasHours: true },
+      { id: "night", name: "Night Session (After 9PM - Min 2hrs)", price: 90, unit: "per hour", hasHours: true },
 
-      { id: "half-day", name: "Half-Day Session", price: 180, unit: "per session" },
-      { id: "half-day-plus", name: "Half-Day Plus", price: 280, unit: "per session" },
+      { id: "half-day", name: "Half-Day Session (4hrs)", price: 180, unit: "per session" },
+      { id: "half-day-plus", name: "Half-Day Plus (4hrs)", price: 280, unit: "per session" },
 
-      { id: "full-day", name: "Full-Day Session", price: 380, unit: "per session" },
-      { id: "full-day-plus", name: "Full-Day Plus", price: 480, unit: "per session" },
+      { id: "full-day", name: "Full-Day Session (8hrs)", price: 380, unit: "per session" },
+      { id: "full-day-plus", name: "Full-Day Plus (8hrs)", price: 480, unit: "per session" },
 
       { id: "extended", name: "Extended Session (10hrs)", price: 600, unit: "per session" },
       { id: "extended-plus", name: "Extended Session Plus (10hrs)", price: 700, unit: "per session" },
@@ -51,12 +53,12 @@ const servicesData: ServiceCategory[] = [
     id: "recording",
     title: "Recording & Editing",
     items: [
-      { id: "audio", name: "Audio Recording", price: 200, unit: "per hour", hasHours: true },
-      { id: "audio-single", name: "Audio + Single-Cam Video", price: 500, unit: "per hour", hasHours: true },
-      { id: "audio-multi", name: "Audio + Multi-Cam Video", price: 980, unit: "per hour", hasHours: true },
+      { id: "audio", name: "Audio-only Recording", price: 120, unit: "per hour", hasHours: true },
+      { id: "audio-single", name: "Audio + Single-Cam Video", price: 200, unit: "per hour", hasHours: true },
+      { id: "audio-multi", name: "Audio + Multi-Cam Video", price: 280, unit: "per hour", hasHours: true },
 
-      { id: "mix", name: "Full Mix", price: 300, unit: "per song", hasQuantity: true },
-      { id: "mix-master", name: "Mix + Master", price: 500, unit: "per song", hasQuantity: true },
+      { id: "mix", name: "Full Mix", price: 200, unit: "per song (up to 8 min)", hasQuantity: true },
+      { id: "mix-master", name: "Mix + Master", price: 300, unit: "per song (up to 8 min)", hasQuantity: true },
 
       { id: "vocal-edit", name: "Vocal Tuning / Instrument Edits", price: 30, unit: "per track", hasQuantity: true },
       { id: "stem-export", name: "Stem Export", price: 50, unit: "per session" },
@@ -68,13 +70,52 @@ const servicesData: ServiceCategory[] = [
     id: "podcast",
     title: "Podcast & Post-Production",
     items: [
-      { id: "pod-audio", name: "Podcast Audio Only", price: 50, unit: "per hour", hasHours: true },
-      { id: "pod-video-single", name: "Podcast Video – Single-Cam", price: 100, unit: "per hour", hasHours: true },
-      { id: "pod-video-multi", name: "Podcast Video – Multi-Cam", price: 150, unit: "per hour", hasHours: true },
+      {
+        id: "pod-audio",
+        name: "Podcast Audio Only",
+        price: 50,
+        unit: "per hour",
+        hasHours: true,
+        guestTiers: [
+          { label: "1-2 guests", price: 50 },
+          { label: "3 guests", price: 80 },
+          { label: "4 guests", price: 100 },
+        ],
+      },
+      {
+        id: "pod-video-single",
+        name: "Podcast Video – Single-Cam",
+        price: 100,
+        unit: "per hour",
+        hasHours: true,
+        guestTiers: [
+          { label: "1-2 guests", price: 100 },
+          { label: "3 guests", price: 150 },
+          { label: "4 guests", price: 200 },
+        ],
+      },
+      {
+        id: "pod-video-multi",
+        name: "Podcast Video – Multi-Cam",
+        price: 150,
+        unit: "per hour",
+        hasHours: true,
+        guestTiers: [
+          { label: "1-2 guests", price: 150 },
+          { label: "3 guests", price: 200 },
+          { label: "4 guests", price: 250 },
+        ],
+      },
 
-      { id: "short-pod", name: "Short Podcast (30 mins)", price: 50, unit: "per session" },
+      { id: "short-pod-audio",  name: "Short Podcast – Audio (30 mins)",      price: 50,  unit: "per session" },
+      { id: "short-pod-single", name: "Short Podcast – Single-Cam (30 mins)", price: 80,  unit: "per session" },
+      { id: "short-pod-multi",  name: "Short Podcast – Multi-Cam (30 mins)",  price: 120, unit: "per session" },
 
-      { id: "post-production", name: "Post Production (Any Track)", price: 150, unit: "per track", hasQuantity: true },
+      { id: "post-aux",    name: "Post-Production – Aux / Strings", price: 180, unit: "per track (8 mins max)", hasQuantity: true, extraMinuteRate: 15 },
+      { id: "post-guitar", name: "Post-Production – Lead Guitars",  price: 80,  unit: "per track",              hasQuantity: true, extraMinuteRate: 15 },
+      { id: "post-drums",  name: "Post-Production – Drums",         price: 150, unit: "per track",              hasQuantity: true, extraMinuteRate: 15 },
+      { id: "post-bass",   name: "Post-Production – Bass",          price: 80,  unit: "per track",              hasQuantity: true, extraMinuteRate: 15 },
+      { id: "post-vocals", name: "Post-Production – Vocals",        price: 150, unit: "per track",              hasQuantity: true, extraMinuteRate: 15 },
     ],
   },
 
@@ -82,34 +123,13 @@ const servicesData: ServiceCategory[] = [
     id: "music-creation",
     title: "Music & Song Creation",
     items: [
-      { id: "prod", name: "Production Only", price: 500, unit: "per project" },
-      { id: "basic", name: "Basic Package", price: 1200, unit: "per project" },
-      { id: "standard", name: "Standard Package", price: 1700, unit: "per project" },
-      { id: "premium", name: "Premium Package", price: 2000, unit: "per project" },
+      { id: "prod", name: "Production Only", price: 300, unit: "per project" },
+      { id: "basic", name: "Basic Package", price: 450, unit: "per project" },
+      { id: "standard", name: "Standard Package", price: 1000, unit: "per project" },
+      { id: "premium", name: "Premium Package", price: 1200, unit: "per project" },
 
       { id: "session-musician", name: "Session Musician", price: 150, unit: "per session", hasQuantity: true },
       { id: "vocalist", name: "Vocalist", price: 120, unit: "per session", hasQuantity: true },
-    ],
-  },
-
-  {
-    id: "video",
-    title: "Video Production",
-    items: [
-      { id: "live-single", name: "Live Session – Single-Cam", price: 200, unit: "per video" },
-      { id: "live-multi", name: "Live Session – Multi-Cam", price: 450, unit: "per video" },
-
-      { id: "music-basic", name: "Music Video (Basic)", price: 500, unit: "per video" },
-      { id: "music-cinematic", name: "Music Video (Cinematic)", price: 800, unit: "per video" },
-      { id: "music-storyline", name: "Music Video (Storyline)", price: 1250, unit: "from" },
-
-      { id: "cover-single", name: "Short Cover – Single-Cam", price: 100, unit: "per video" },
-      { id: "cover-multi", name: "Short Cover – Multi-Cam", price: 150, unit: "per video" },
-
-      { id: "mobile-content", name: "Mobile Phone Content", price: 60, unit: "per hour", hasHours: true },
-
-      { id: "extra-camera", name: "Extra Camera", price: 50, unit: "each", hasQuantity: true },
-      { id: "extra-day", name: "Extra Day Shoot", price: 220, unit: "per day" },
     ],
   },
 
@@ -122,13 +142,9 @@ const servicesData: ServiceCategory[] = [
 
       { id: "engineer-day", name: "Engineer (Day Rate)", price: 25, unit: "per hour", hasHours: true },
       { id: "engineer-night", name: "Engineer (Night Rate)", price: 35, unit: "per hour", hasHours: true },
-
-      { id: "rush", name: "Rush Delivery (+30%)", price: 0, unit: "surcharge" },
     ],
   },
-];
-
-
+]
 
 interface SelectedService {
   id: string
@@ -136,12 +152,15 @@ interface SelectedService {
   price: number
   quantity: number
   hours: number
+  tierPrice?: number       // ✅ new
+  extraMinutes?: number    // ✅ new
+  extraMinuteRate?: number // ✅ new
 }
 
 export function PricingCalculator() {
   const router = useRouter()
   const [selectedServices, setSelectedServices] = useState<Record<string, SelectedService>>({})
-  const [isLoading, setIsLoading] = useState(false) // ✅ added loading state
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleServiceToggle = (categoryId: string, item: ServiceItem) => {
     const key = `${categoryId}-${item.id}`
@@ -159,6 +178,9 @@ export function PricingCalculator() {
             price: item.price,
             quantity: item.hasQuantity ? 1 : 0,
             hours: item.hasHours ? 1 : 0,
+            tierPrice: item.guestTiers ? item.guestTiers[0].price : undefined, // ✅ default first tier
+            extraMinutes: item.extraMinuteRate !== undefined ? 0 : undefined,
+            extraMinuteRate: item.extraMinuteRate,
           },
         }
       }
@@ -179,20 +201,36 @@ export function PricingCalculator() {
     }))
   }
 
+  // ✅ new handlers
+  const handleTierChange = (key: string, tierPrice: number) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], tierPrice },
+    }))
+  }
+
+  const handleExtraMinutesChange = (key: string, value: number) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], extraMinutes: Math.max(0, value) },
+    }))
+  }
+
+  // ✅ updated total: accounts for tierPrice and extraMinutes
   const total = useMemo(() => {
     return Object.values(selectedServices).reduce((sum, service) => {
+      const activePrice = service.tierPrice ?? service.price
       const multiplier = service.quantity > 0 ? service.quantity : service.hours > 0 ? service.hours : 1
-      return sum + service.price * multiplier
+      const extraCost = (service.extraMinutes ?? 0) * (service.extraMinuteRate ?? 0)
+      return sum + activePrice * multiplier + extraCost
     }, 0)
   }, [selectedServices])
 
   const deposit = useMemo(() => (total >= 200 ? total * 0.5 : total), [total])
 
-  // ✅ Updated handleBookNow with spinner animation
   const handleBookNow = async () => {
     if (isLoading) return
     setIsLoading(true)
-
     const servicesParam = encodeURIComponent(JSON.stringify(selectedServices))
     setTimeout(() => {
       router.push(`/book?services=${servicesParam}`)
@@ -204,7 +242,7 @@ export function PricingCalculator() {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {/* left side */}
+            {/* Left side */}
             <Card className="border-border">
               <CardHeader>
                 <CardTitle className="text-2xl font-serif">Select Your Services</CardTitle>
@@ -246,6 +284,26 @@ export function PricingCalculator() {
                                   <p className="text-sm text-muted-foreground mt-1">
                                     £{item.price} {item.unit}
                                   </p>
+
+                                  {/* ✅ Guest tier dropdown */}
+                                  {isSelected && item.guestTiers && (
+                                    <div className="mt-3 flex items-center gap-2">
+                                      <Label className="text-sm">Guests:</Label>
+                                      <select
+                                        value={selectedServices[key].tierPrice}
+                                        onChange={(e) => handleTierChange(key, Number(e.target.value))}
+                                        className="text-sm border border-border rounded-md px-2 py-1 bg-background"
+                                      >
+                                        {item.guestTiers.map((tier) => (
+                                          <option key={tier.label} value={tier.price}>
+                                            {tier.label} — £{tier.price}/hr
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  )}
+
+                                  {/* Hours / Quantity stepper */}
                                   {isSelected && (item.hasQuantity || item.hasHours) && (
                                     <div className="mt-3 flex items-center gap-2">
                                       <Label htmlFor={`${key}-input`} className="text-sm">
@@ -261,17 +319,14 @@ export function PricingCalculator() {
                                               ? selectedServices[key].hours
                                               : selectedServices[key].quantity
                                             const newValue = Math.max(1, currentValue - 1)
-                                            if (item.hasHours) {
-                                              handleHoursChange(key, newValue)
-                                            } else {
-                                              handleQuantityChange(key, newValue)
-                                            }
+                                            item.hasHours
+                                              ? handleHoursChange(key, newValue)
+                                              : handleQuantityChange(key, newValue)
                                           }}
                                           className="w-8 h-8 p-0"
                                         >
                                           -
                                         </Button>
-
                                         <Input
                                           id={`${key}-input`}
                                           type="number"
@@ -284,15 +339,12 @@ export function PricingCalculator() {
                                           onChange={(e) => {
                                             const value =
                                               e.target.value === "" ? 1 : parseInt(e.target.value, 10) || 1
-                                            if (item.hasHours) {
-                                              handleHoursChange(key, value)
-                                            } else {
-                                              handleQuantityChange(key, value)
-                                            }
+                                            item.hasHours
+                                              ? handleHoursChange(key, value)
+                                              : handleQuantityChange(key, value)
                                           }}
                                           className="w-16 text-center"
                                         />
-
                                         <Button
                                           type="button"
                                           variant="outline"
@@ -301,12 +353,9 @@ export function PricingCalculator() {
                                             const currentValue = item.hasHours
                                               ? selectedServices[key].hours
                                               : selectedServices[key].quantity
-                                            const newValue = currentValue + 1
-                                            if (item.hasHours) {
-                                              handleHoursChange(key, newValue)
-                                            } else {
-                                              handleQuantityChange(key, newValue)
-                                            }
+                                            item.hasHours
+                                              ? handleHoursChange(key, currentValue + 1)
+                                              : handleQuantityChange(key, currentValue + 1)
                                           }}
                                           className="w-8 h-8 p-0"
                                         >
@@ -315,17 +364,75 @@ export function PricingCalculator() {
                                       </div>
                                     </div>
                                   )}
+
+                                  {/* ✅ Extra minutes input */}
+                                  {isSelected && item.extraMinuteRate !== undefined && (
+                                    <div className="mt-3 flex items-center gap-2">
+                                      <Label htmlFor={`${key}-extra`} className="text-sm">
+                                        Extra mins{" "}
+                                        <span className="text-muted-foreground">(£{item.extraMinuteRate}/min):</span>
+                                      </Label>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            handleExtraMinutesChange(
+                                              key,
+                                              (selectedServices[key].extraMinutes ?? 0) - 1
+                                            )
+                                          }
+                                          className="w-8 h-8 p-0"
+                                        >
+                                          -
+                                        </Button>
+                                        <Input
+                                          id={`${key}-extra`}
+                                          type="number"
+                                          min="0"
+                                          value={selectedServices[key].extraMinutes ?? 0}
+                                          onChange={(e) =>
+                                            handleExtraMinutesChange(key, parseInt(e.target.value, 10) || 0)
+                                          }
+                                          className="w-16 text-center"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            handleExtraMinutesChange(
+                                              key,
+                                              (selectedServices[key].extraMinutes ?? 0) + 1
+                                            )
+                                          }
+                                          className="w-8 h-8 p-0"
+                                        >
+                                          +
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
+
+                                {/* ✅ Updated item card price — uses tierPrice + extraMinutes */}
                                 <div className="text-right">
                                   {isSelected && (
                                     <p className="text-sm font-semibold text-primary">
-                                      £
-                                      {item.price *
-                                        (selectedServices[key].quantity > 0
-                                          ? selectedServices[key].quantity
-                                          : selectedServices[key].hours > 0
-                                          ? selectedServices[key].hours
-                                          : 1)}
+                                      £{(() => {
+                                        const activePrice = selectedServices[key].tierPrice ?? item.price
+                                        const multiplier =
+                                          selectedServices[key].quantity > 0
+                                            ? selectedServices[key].quantity
+                                            : selectedServices[key].hours > 0
+                                            ? selectedServices[key].hours
+                                            : 1
+                                        const extraCost =
+                                          (selectedServices[key].extraMinutes ?? 0) *
+                                          (selectedServices[key].extraMinuteRate ?? 0)
+                                        return activePrice * multiplier + extraCost
+                                      })()}
                                     </p>
                                   )}
                                 </div>
@@ -360,20 +467,29 @@ export function PricingCalculator() {
                   ) : (
                     <div className="space-y-4">
                       <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                        {/* ✅ Updated summary rows — uses tierPrice + extraMinutes */}
                         {Object.values(selectedServices).map((service) => {
+                          const activePrice = service.tierPrice ?? service.price
                           const multiplier =
                             service.quantity > 0 ? service.quantity : service.hours > 0 ? service.hours : 1
+                          const extraCost = (service.extraMinutes ?? 0) * (service.extraMinuteRate ?? 0)
+                          const lineTotal = activePrice * multiplier + extraCost
                           return (
                             <div key={service.id} className="flex justify-between text-sm">
                               <div className="flex-1">
                                 <p className="font-medium">{service.name}</p>
                                 {multiplier > 1 && (
                                   <p className="text-xs text-muted-foreground">
-                                    £{service.price} × {multiplier}
+                                    £{activePrice} × {multiplier}
+                                  </p>
+                                )}
+                                {extraCost > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    +{service.extraMinutes} extra min (£{extraCost})
                                   </p>
                                 )}
                               </div>
-                              <p className="font-semibold">£{service.price * multiplier}</p>
+                              <p className="font-semibold">£{lineTotal}</p>
                             </div>
                           )
                         })}
