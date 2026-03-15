@@ -16,7 +16,7 @@ export function PortfolioVideos() {
     {
       title: "Studio Tour",
       description: "Behind the scenes at Heavenly Soundscapes",
-      src: "https://imh1nydwoiiwnh60.public.blob.vercel-storage.com/Adonai%20Cover.mp4",
+      src: "https://your-video-link-2-here.com/video.mp4",
     },
     {
       title: "Production Process",
