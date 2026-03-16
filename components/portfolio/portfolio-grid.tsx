@@ -4,7 +4,7 @@ const portfolioItems = [
   {
     title: "Worship Album ",
     category: "Worship Recording",
-    description: "Full album production with 12 tracks, featuring live choir and orchestra arrangements.",
+    description: "We offer full album production featuring live choir and orchestra arrangements.",
     image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMS5qcGciLCJpYXQiOjE3NzM1ODcyODIsImV4cCI6MTkzMTI2NzI4Mn0.N-0fSvahE7yTGPqbk_NUL4ocI_Qmoq2Yr-aMaGV5xPE",
   },
   {
@@ -28,13 +28,13 @@ const portfolioItems = [
   {
     title: "EP Production",
     category: "Music Production",
-    description: "5-track EP with complete production, mixing, and mastering.",
+    description: "Complete EP production with mixing and mastering.",
     image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNy5qcGciLCJpYXQiOjE3NzM1ODc2MjYsImV4cCI6MTkzMTI2NzYyNn0.kCiFEt7Exc8mngRqlNh97fdFuKlldUN981KDbdt_DiQ",
   },
   {
     title: "Sermon Series Audio",
     category: "Audio Enhancement",
-    description: "Professional audio cleanup and enhancement for sermon recordings.",
+    description: "We offer professional audio cleanup and enhancement for sermon recordings.",
     image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-3.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMy5qcGciLCJpYXQiOjE3NzM1ODc2NjgsImV4cCI6MTkzMTI2NzY2OH0.MybUm9EU3EQM8gGG7eH_7Wm3BUbPqOe-hEonVoORrCU",
   },
 ]
