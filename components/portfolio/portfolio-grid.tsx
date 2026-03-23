@@ -1,45 +1,45 @@
-import Image from "next/image"
+"use client"
+
+import { useRef, useState } from "react"
 
 const portfolioItems = [
-  {
-    title: "Worship Album ",
-    category: "Worship Recording",
-    description: "We offer full album production featuring live choir and orchestra arrangements.",
-    image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMS5qcGciLCJpYXQiOjE3NzM1ODcyODIsImV4cCI6MTkzMTI2NzI4Mn0.N-0fSvahE7yTGPqbk_NUL4ocI_Qmoq2Yr-aMaGV5xPE",
-  },
-  {
-    title: "Podcast Series ",
-    category: "Podcast Production",
-    description: "Weekly podcast series with professional editing and sound design.",
-    image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMi5qcGciLCJpYXQiOjE3NzM1ODc0MDEsImV4cCI6MTkzMTI2NzQwMX0.yko2eKlxuxfzBuZmAi_Da7ddjCJhUodrn0XaOdMTG2M",
-  },
-  {
-    title: "Single Release",
-    category: "Music Production",
-    description: "Contemporary Christian single with full production and mixing.",
-    image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-5.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNS5qcGciLCJpYXQiOjE3NzM1ODc1NDEsImV4cCI6MTkzMTI2NzU0MX0.xV2R8isp7LF0VOtDd1SjnGVKAFbaTZfyvqvX-wCTbl0",
-  },
-  {
-    title: "Live Session Recording",
-    category: "Live Recording",
-    description: "Multi-track live session capture with professional mixing.",
-    image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNi5qcGciLCJpYXQiOjE3NzM1ODc1NzgsImV4cCI6MTkzMTI2NzU3OH0.ppW09frmDUzKmEXhPRheEJPUq8z-vsP6Pf4TZlBxJvw",
-  },
-  {
-    title: "EP Production",
-    category: "Music Production",
-    description: "Complete EP production with mixing and mastering.",
-    image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tNy5qcGciLCJpYXQiOjE3NzM1ODc2MjYsImV4cCI6MTkzMTI2NzYyNn0.kCiFEt7Exc8mngRqlNh97fdFuKlldUN981KDbdt_DiQ",
-  },
-  {
-    title: "Sermon Series Audio",
-    category: "Audio Enhancement",
-    description: "We offer professional audio cleanup and enhancement for sermon recordings.",
-    image: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/sign/pictures/studio-3.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iNjk0ZGFlNS1hNTUxLTRiNjYtYjM3My1lMmE0YWQwNTAwYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy9zdHVkaW8tMy5qcGciLCJpYXQiOjE3NzM1ODc2NjgsImV4cCI6MTkzMTI2NzY2OH0.MybUm9EU3EQM8gGG7eH_7Wm3BUbPqOe-hEonVoORrCU",
-  },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/Hsp%20V2.mp4" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/Ven%20Ven%20Yt.mp4" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0051.mp4" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0073.mp4" },
+  { src: "https://your-video-link-5-here.com/video.mp4" },
+  { src: "https://your-video-link-6-here.com/video.mp4" },
 ]
 
 export function PortfolioGrid() {
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
+  const [activeVideo, setActiveVideo] = useState<number | null>(null)
+  const [loadedVideos, setLoadedVideos] = useState<boolean[]>(
+    new Array(portfolioItems.length).fill(false)
+  )
+
+  const handleCanPlay = (index: number) => {
+    const vid = videoRefs.current[index]
+    if (vid) {
+      vid.play().catch((err) => console.warn("Autoplay blocked:", err))
+      setLoadedVideos((prev) => {
+        const updated = [...prev]
+        updated[index] = true
+        return updated
+      })
+    }
+  }
+
+  const openFullscreen = (index: number) => {
+    setActiveVideo(index)
+    document.body.style.overflow = "hidden"
+  }
+
+  const closeFullscreen = () => {
+    setActiveVideo(null)
+    document.body.style.overflow = ""
+  }
+
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -47,30 +47,78 @@ export function PortfolioGrid() {
           {portfolioItems.map((item, index) => (
             <div
               key={index}
-              className="group bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gold transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]"
+              onClick={() => openFullscreen(index)}
+              className="group relative bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gold transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] cursor-pointer h-64"
             >
-              <div className="relative h-64 overflow-hidden">
-                <Image
-                  src={item.image || "/placeholder.svg"}
-                  alt={item.title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <span className="inline-block px-3 py-1 bg-gold text-white text-sm font-semibold rounded-full mb-2">
-                    {item.category}
-                  </span>
+              {/* Loading spinner */}
+              {!loadedVideos[index] && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="font-serif text-xl font-bold text-gold mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{item.description}</p>
+              )}
+
+              {/* Background muted autoplay video */}
+              <video
+                ref={(el) => (videoRefs.current[index] = el)}
+                src={item.src}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                onCanPlay={() => handleCanPlay(index)}
+                className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-500 ${
+                  loadedVideos[index] ? "opacity-60 group-hover:opacity-80" : "opacity-0"
+                }`}
+              />
+
+              {/* Play button overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <div className="transform group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-12 h-12 rounded-full bg-primary/30 border border-gold/50 flex items-center justify-center backdrop-blur-sm group-hover:bg-primary/50 transition-colors duration-300">
+                    <svg className="w-6 h-6 text-gold ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Fullscreen Modal */}
+      {activeVideo !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={closeFullscreen}
+        >
+          <div
+            className="relative w-full max-w-5xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={closeFullscreen}
+              className="absolute -top-12 right-0 text-white/70 hover:text-white text-sm flex items-center gap-2 transition-colors duration-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Close
+            </button>
+
+            <div className="aspect-video rounded-lg overflow-hidden border border-gold/30 shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+              <video
+                src={portfolioItems[activeVideo].src}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
