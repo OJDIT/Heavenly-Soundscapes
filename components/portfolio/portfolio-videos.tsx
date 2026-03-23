@@ -24,8 +24,8 @@ export function PortfolioVideos() {
       src: "https://imh1nydwoiiwnh60.public.blob.vercel-storage.com/Img%209927.mp4",
     },
     {
-      title: "Client Testimonials",
-      description: "Hear from our satisfied clients",
+      title: "Studio Tour",
+      description: "Behind the scenes at Heavenly Soundscapes",
       src: "https://imh1nydwoiiwnh60.public.blob.vercel-storage.com/Img%209946.mp4",
     },
   ]
