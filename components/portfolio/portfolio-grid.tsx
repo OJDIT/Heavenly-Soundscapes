@@ -7,8 +7,8 @@ const portfolioItems = [
   { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/Ven%20Ven%20Yt.mp4" },
   { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0051.mp4" },
   { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0073.mp4" },
-  { src: "https://your-video-link-5-here.com/video.mp4" },
-  { src: "https://your-video-link-6-here.com/video.mp4" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/session.mp4" },
+  { src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0051.mp4" },
 ]
 
 export function PortfolioGrid() {

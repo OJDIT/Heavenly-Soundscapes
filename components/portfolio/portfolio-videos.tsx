@@ -19,14 +19,14 @@ export function PortfolioVideos() {
       src: "https://imh1nydwoiiwnh60.public.blob.vercel-storage.com/C0062.mp4",
     },
     {
+      title: "Studio Tour",
+      description: "Behind the scenes at Heavenly Soundscapes",
+      src: "https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/upstairs.mp4",
+    },
+    {
       title: "Production Process",
       description: "From recording to final master",
       src: "https://imh1nydwoiiwnh60.public.blob.vercel-storage.com/Img%209927.mp4",
-    },
-    {
-      title: "Studio Tour",
-      description: "Behind the scenes at Heavenly Soundscapes",
-      src: "https://imh1nydwoiiwnh60.public.blob.vercel-storage.com/Img%209946.mp4",
     },
   ]
 
