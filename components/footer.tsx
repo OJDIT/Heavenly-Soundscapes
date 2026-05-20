@@ -99,7 +99,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} Heavenly Soundscape Productions. All rights reserved.
+            © {new Date().getFullYear()} Heavenly Soundscape Productions. All rights reserved
           </p>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-sm text-gray-400 hover:text-gold transition-colors">
