@@ -29,7 +29,8 @@ export function HeroSection() {
           className="w-full h-full object-cover opacity-40"
         >
           {/* Replace the local file with an online video URL */}
-          <source src="https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0062.mp4" type="video/mp4" />
+          <source src="https://nkfzdkepvicgpvojocrs.supabase.co/storage/v1/object/public/video-files/videos/C0062.mp4
+          " type="video/mp4" />
         </video>
 
         {/* Overlay gradient for readability */}
