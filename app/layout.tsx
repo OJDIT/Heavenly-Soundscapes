@@ -19,10 +19,14 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://heavenlysoundscape.com"),
   title: "Heavenly Soundscapes | Premium Recording Studio",
   description:
     "Where Sound Meets Perfection. Professional music recording, mixing, mastering, and production services. Book your session today.",
   keywords: ["recording studio", "music production", "mixing", "mastering", "audio engineering", "podcast recording"],
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
