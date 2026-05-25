@@ -1,44 +1,40 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mic, Music, Video, Podcast, Users, Headphones } from "lucide-react"
+import { Headphones, Mic, Music, Podcast, Users, Video } from "lucide-react"
+
+const BOOKING_URL = "https://studiotracker.heavenlysoundscape.com/book"
 
 const services = [
   {
     icon: Mic,
     title: "Studio Sessions",
     description: "Professional rehearsal and recording packages with full backline and equipment",
-    price: "From £40/hr",
   },
   {
     icon: Music,
     title: "Music Production",
     description: "Complete song creation from concept to final master with expert producers",
-    price: "From £650",
   },
   {
     icon: Headphones,
     title: "Mixing & Mastering",
     description: "Industry-standard post-production to make your tracks radio-ready",
-    price: "From £120/song",
   },
   {
     icon: Users,
     title: "Worship Recording",
     description: "Specialized services for worship teams and live creative sessions",
-    price: "From £500",
   },
   {
     icon: Video,
     title: "Video Production",
     description: "Music videos, live sessions, and multi-camera productions",
-    price: "From £500",
   },
   {
     icon: Podcast,
     title: "Podcast Production",
     description: "Audio and video podcast recording with professional editing",
-    price: "From £50/hr",
   },
 ]
 
@@ -59,15 +55,14 @@ export function ServicesPreview() {
           {services.map((service, index) => {
             const Icon = service.icon
             return (
-              <Link key={index} href="/services" className="block">
+              <Link key={index} href={BOOKING_URL} className="block h-full">
                 <Card className="group hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 h-full">
                   <CardContent className="p-6">
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <Icon size={24} />
                     </div>
                     <h3 className="font-semibold text-xl mb-2">{service.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{service.description}</p>
-                    <p className="text-primary font-semibold">{service.price}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -77,7 +72,7 @@ export function ServicesPreview() {
 
         <div className="text-center">
           <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href="/services">View Full Rate Card</Link>
+            <Link href="/services">View All Services</Link>
           </Button>
         </div>
       </div>
