@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Headphones, Mic, Music, Podcast, Users, Video } from "lucide-react"
+import { ArrowRight, Headphones, Mic, Music, Podcast, Users, Video } from "lucide-react"
 
 const BOOKING_URL = "https://studiotracker.heavenlysoundscape.com/book"
 
@@ -57,12 +57,16 @@ export function ServicesPreview() {
             return (
               <Link key={index} href={BOOKING_URL} className="block h-full">
                 <Card className="group hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 h-full">
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 h-full flex flex-col">
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <Icon size={24} />
                     </div>
                     <h3 className="font-semibold text-xl mb-2">{service.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
+                    <div className="mt-auto pt-6 flex items-center gap-2 text-sm font-semibold text-primary">
+                      <span>View More</span>
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
